@@ -2,7 +2,7 @@
 
 Push data to **Firebase Remote Config** directly from VS Code. Designed for developers who want a faster, integrated way to manage their remote parameters without leaving their editor.
 
-![Icon](rmc_push_icon.png)
+![Icon](icon.png)
 
 ## 🚀 Features
 
