@@ -1,11 +1,11 @@
 {
   "name": "rmc-push",
-  "displayName": "Firebase Remote Config Push",
+  "displayName": "Firebase Push",
   "description": "Push data to Firebase Remote Config from VS Code, focused on Flutter developers.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "Xclusivecyborg",
   "license": "MIT",
-  "icon": "rmc_push_icon.png",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/Xclusivecyborg/rmc-push.git"

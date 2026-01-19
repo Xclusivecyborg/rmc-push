@@ -1,4 +1,4 @@
-# Firebase Remote Config Push
+# Firebase Push
 
 Push data to **Firebase Remote Config** directly from VS Code. Designed for developers who want a faster, integrated way to manage their remote parameters without leaving their editor.
 
