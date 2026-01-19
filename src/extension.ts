@@ -198,11 +198,14 @@ function getWebviewContent(): string {
 			<form id="configForm">
 				<label>Key:</label>
 				<input type="text" id="key" placeholder="e.g. welcome_title" required />
+				<div class="error-placeholder">
+					<div id="error-key" class="error-msg"></div>
+				</div>
 				
 				<label>Value:</label>
 				<input type="text" id="value" placeholder="Enter value..." required />
 				<div class="error-placeholder">
-					<div id="error-message" class="error-msg"></div>
+					<div id="error-value" class="error-msg"></div>
 				</div>
 
 				<label>Type:</label>
@@ -218,30 +221,41 @@ function getWebviewContent(): string {
 			<div id="result"></div>
 			<script>
 				const vscode = acquireVsCodeApi();
-				const errorDiv = document.getElementById('error-message');
+				const errorKey = document.getElementById('error-key');
+				const errorValue = document.getElementById('error-value');
+				const keyInput = document.getElementById('key');
 				const valueInput = document.getElementById('value');
 
-				function showError(msg) {
-					errorDiv.textContent = msg;
-					errorDiv.style.display = 'block';
+				function showError(element, msg) {
+					element.textContent = msg;
+					element.style.display = 'block';
 				}
 
-				function hideError() {
-					errorDiv.style.display = 'none';
-					errorDiv.textContent = '';
+				function hideError(element) {
+					element.style.display = 'none';
+					element.textContent = '';
 				}
 
-				valueInput.addEventListener('input', hideError);
+				keyInput.addEventListener('input', () => hideError(errorKey));
+				valueInput.addEventListener('input', () => hideError(errorValue));
 
 				document.getElementById('configForm').addEventListener('submit', function(e) {
 					e.preventDefault();
-					const key = document.getElementById('key').value;
+					const key = keyInput.value.trim();
 					let value = valueInput.value;
 					const type = document.getElementById('type').value;
 
-					hideError();
+					hideError(errorKey);
+					hideError(errorValue);
 
-					// Local Validation
+					// Key Validation
+					const keyRegex = /^[a-zA-Z0-9_]+$/;
+					if (!keyRegex.test(key)) {
+						showError(errorKey, 'Invalid key: use only alphanumeric characters and underscores');
+						return;
+					}
+
+					// Value Validation
 					try {
 						if (type === 'JSON') {
 							JSON.parse(value); // Check if valid JSON
@@ -257,7 +271,7 @@ function getWebviewContent(): string {
 							value = lowerVal; // Normalize
 						}
 					} catch (err) {
-						showError(err.message);
+						showError(errorValue, err.message);
 						return;
 					}
 
