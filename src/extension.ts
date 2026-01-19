@@ -17,12 +17,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	// Command: Hello World (default)
-	const disposable = vscode.commands.registerCommand('rmc-push.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from Firebase Remote Config Push!');
-	});
-	context.subscriptions.push(disposable);
-
 	// Command: Open Remote Config Push UI
 	const pushConfigDisposable = vscode.commands.registerCommand('rmc-push.pushRemoteConfig', async () => {
 		// Authenticate with Firebase using a service account JSON file
