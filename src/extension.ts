@@ -182,30 +182,64 @@ function getWebviewContent(): string {
 	// Simple HTML form for Remote Config key/value
 	return `
 		<html>
-		<head><title>Push to Firebase Remote Config</title></head>
+		<head>
+			<title>Push to Firebase Remote Config</title>
+			<style>
+				body { font-family: sans-serif; padding: 20px; }
+				.error-placeholder { height: 1.5em; margin-bottom: 5px; }
+				.error-msg { color: #f44336; font-size: 0.85em; display: none; }
+				input, select { margin-bottom: 15px; width: 100%; box-sizing: border-box; padding: 8px; }
+				button { padding: 10px 20px; cursor: pointer; background: #007acc; color: white; border: none; border-radius: 4px; }
+				button:hover { background: #0062a3; }
+			</style>
+		</head>
 		<body>
 			<h2>Push to Firebase Remote Config</h2>
 			<form id="configForm">
-				<label>Key: <input type="text" id="key" required /></label><br><br>
-				<label>Value: <input type="text" id="value" required /></label><br><br>
-				<label>Type: 
-					<select id="type">
-						<option value="STRING">String</option>
-						<option value="NUMBER">Number</option>
-						<option value="BOOLEAN">Boolean</option>
-						<option value="JSON">JSON</option>
-					</select>
-				</label><br><br>
+				<label>Key:</label>
+				<input type="text" id="key" placeholder="e.g. welcome_title" required />
+				
+				<label>Value:</label>
+				<input type="text" id="value" placeholder="Enter value..." required />
+				<div class="error-placeholder">
+					<div id="error-message" class="error-msg"></div>
+				</div>
+
+				<label>Type:</label>
+				<select id="type">
+					<option value="STRING">String</option>
+					<option value="NUMBER">Number</option>
+					<option value="BOOLEAN">Boolean</option>
+					<option value="JSON">JSON</option>
+				</select>
+
 				<button type="submit">Push Config</button>
 			</form>
 			<div id="result"></div>
 			<script>
 				const vscode = acquireVsCodeApi();
+				const errorDiv = document.getElementById('error-message');
+				const valueInput = document.getElementById('value');
+
+				function showError(msg) {
+					errorDiv.textContent = msg;
+					errorDiv.style.display = 'block';
+				}
+
+				function hideError() {
+					errorDiv.style.display = 'none';
+					errorDiv.textContent = '';
+				}
+
+				valueInput.addEventListener('input', hideError);
+
 				document.getElementById('configForm').addEventListener('submit', function(e) {
 					e.preventDefault();
 					const key = document.getElementById('key').value;
-					let value = document.getElementById('value').value;
+					let value = valueInput.value;
 					const type = document.getElementById('type').value;
+
+					hideError();
 
 					// Local Validation
 					try {
@@ -223,7 +257,7 @@ function getWebviewContent(): string {
 							value = lowerVal; // Normalize
 						}
 					} catch (err) {
-						alert('Validation Error (Local): ' + err.message);
+						showError(err.message);
 						return;
 					}
 
