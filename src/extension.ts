@@ -281,9 +281,9 @@ function getWebviewContent(): string {
 					const msg = event.data;
 					const result = document.getElementById('result');
 					if (msg.status === 'success') {
-						result.innerHTML = '<span style="color:green">' + msg.message + '</span>';
+						result.innerHTML = '<div class="success-text">' + msg.message + '</div>';
 					} else if (msg.status === 'error') {
-						result.innerHTML = '<span style="color:red">' + msg.message + '</span>';
+						result.innerHTML = '<div class="error-text">Failed to update: ' + msg.message + '</div>';
 					}
 				});
 			</script>
