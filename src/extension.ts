@@ -116,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Listen for messages from the webview
 		panel.webview.onDidReceiveMessage(async (message) => {
 			if (message.command === 'pushConfig') {
-				const { key, value } = message;
+				const { key, value, type } = message;
 				try {
 					const projectId = serviceAccount.project_id;
 					const apiUrl = `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/remoteConfig`;
@@ -140,7 +140,8 @@ export function activate(context: vscode.ExtensionContext) {
 						parameters: {
 							...(currentConfig.parameters || {}),
 							[key]: {
-								defaultValue: { value }
+								defaultValue: { value },
+								valueType: type
 							}
 						}
 					};
@@ -187,6 +188,14 @@ function getWebviewContent(): string {
 			<form id="configForm">
 				<label>Key: <input type="text" id="key" required /></label><br><br>
 				<label>Value: <input type="text" id="value" required /></label><br><br>
+				<label>Type: 
+					<select id="type">
+						<option value="STRING">String</option>
+						<option value="NUMBER">Number</option>
+						<option value="BOOLEAN">Boolean</option>
+						<option value="JSON">JSON</option>
+					</select>
+				</label><br><br>
 				<button type="submit">Push Config</button>
 			</form>
 			<div id="result"></div>
@@ -195,8 +204,30 @@ function getWebviewContent(): string {
 				document.getElementById('configForm').addEventListener('submit', function(e) {
 					e.preventDefault();
 					const key = document.getElementById('key').value;
-					const value = document.getElementById('value').value;
-					vscode.postMessage({ command: 'pushConfig', key, value });
+					let value = document.getElementById('value').value;
+					const type = document.getElementById('type').value;
+
+					// Local Validation
+					try {
+						if (type === 'JSON') {
+							JSON.parse(value); // Check if valid JSON
+						} else if (type === 'NUMBER') {
+							if (isNaN(Number(value)) || value.trim() === '') {
+								throw new Error('Invalid number format');
+							}
+						} else if (type === 'BOOLEAN') {
+							const lowerVal = value.toLowerCase().trim();
+							if (lowerVal !== 'true' && lowerVal !== 'false') {
+								throw new Error('Boolean must be "true" or "false"');
+							}
+							value = lowerVal; // Normalize
+						}
+					} catch (err) {
+						alert('Validation Error (Local): ' + err.message);
+						return;
+					}
+
+					vscode.postMessage({ command: 'pushConfig', key, value, type });
 				});
 				window.addEventListener('message', event => {
 					const msg = event.data;
