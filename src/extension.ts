@@ -111,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.ViewColumn.One,
 			{ enableScripts: true }
 		);
-		panel.webview.html = getWebviewContent();
+		panel.webview.html = getWebviewContent(serviceAccount.project_id);
 
 		// Listen for messages from the webview
 		panel.webview.onDidReceiveMessage(async (message) => {
@@ -178,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(resetDisposable);
 }
 
-function getWebviewContent(): string {
+function getWebviewContent(projectName: string): string {
 	// Simple HTML form for Remote Config key/value
 	return `
 		<html>
@@ -189,12 +189,15 @@ function getWebviewContent(): string {
 				.error-placeholder { height: 1.5em; margin-bottom: 5px; }
 				.error-msg { color: #f44336; font-size: 0.85em; display: none; }
 				input, select { margin-bottom: 15px; width: 100%; box-sizing: border-box; padding: 8px; }
-				button { padding: 10px 20px; cursor: pointer; background: #007acc; color: white; border: none; border-radius: 4px; }
+				button { padding: 10px 20px; cursor: pointer; background: #007acc; color: white; border: none; border-radius: 4px; display: block; width: 100%; }
 				button:hover { background: #0062a3; }
+				#result { margin-top: 25px; }
+				.success-text { color: #4db33d; font-size: 1.15em; font-weight: 500; }
+				.error-text { color: #f44336; font-size: 1em; }
 			</style>
 		</head>
 		<body>
-			<h2>Push to Firebase Remote Config</h2>
+			<h2>Push to Remote Config: <span style="color: #007acc;">${projectName}</span></h2>
 			<form id="configForm">
 				<label>Key:</label>
 				<input type="text" id="key" placeholder="e.g. welcome_title" required />
