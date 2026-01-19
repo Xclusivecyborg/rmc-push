@@ -31,8 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
 				openLabel: 'Select Service Account JSON'
 			});
 			if (fileUri && fileUri[0]) {
-				await vscode.workspace.getConfiguration('rmcPush').update('serviceAccountPath', fileUri[0].fsPath, vscode.ConfigurationTarget.Global);
-				vscode.window.showInformationMessage('Service account file set. Please re-run the command.');
+				await vscode.workspace.getConfiguration('rmcPush').update('serviceAccountPath', fileUri[0].fsPath, vscode.ConfigurationTarget.Workspace);
+				vscode.window.showInformationMessage('Service account file set for this workspace. Please re-run the command.');
 			}
 			return;
 		}
@@ -168,6 +168,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}, undefined, context.subscriptions);
 	});
 	context.subscriptions.push(pushConfigDisposable);
+
+	// Command: Reset Service Account Path
+	const resetDisposable = vscode.commands.registerCommand('rmc-push.resetServiceAccountPath', async () => {
+		await vscode.workspace.getConfiguration('rmcPush').update('serviceAccountPath', undefined, vscode.ConfigurationTarget.Workspace);
+		vscode.window.showInformationMessage('Service account path has been reset for this workspace.');
+	});
+	context.subscriptions.push(resetDisposable);
 }
 
 function getWebviewContent(): string {

@@ -19,6 +19,11 @@
         "command": "rmc-push.pushRemoteConfig",
         "title": "Push to Firebase Remote Config",
         "category": "RMC Push"
+      },
+      {
+        "command": "rmc-push.resetServiceAccountPath",
+        "title": "Reset Service Account Path",
+        "category": "RMC Push"
       }
     ],
     "configuration": {
@@ -28,7 +33,8 @@
         "rmcPush.serviceAccountPath": {
           "type": "string",
           "default": "",
-          "description": "Path to your Firebase service account JSON file."
+          "description": "Path to your Firebase service account JSON file.",
+          "scope": "resource"
         }
       }
     }
