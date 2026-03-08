@@ -87,29 +87,11 @@ async function handlePushMessage(
 			return;
 		}
 
-		const config = vscode.workspace.getConfiguration('rmcPush');
-		let authorName = config.get<string>('authorName')?.trim() || undefined;
-
-		if (!authorName) {
-			const input = await vscode.window.showInputBox({
-				prompt: 'Enter your name for Remote Config version attribution (required)',
-				placeHolder: 'e.g. Ayodeji',
-				ignoreFocusOut: true,
-				validateInput: (value) => value.trim() ? null : 'Name is required to push.'
-			});
-			if (!input?.trim()) {
-				postMessage(panel, { status: 'error', message: 'Push cancelled: author name is required.' });
-				return;
-			}
-			authorName = input.trim();
-			await config.update('authorName', authorName, vscode.ConfigurationTarget.Workspace);
-		}
-
 		const { template, etag } = await fetchRemoteConfig(auth);
 		const updated = message.group
 			? mergeParameterInGroup(template, message.group, message.key, message.value, message.type)
 			: mergeParameter(template, message.key, message.value, message.type);
-		await pushRemoteConfig(auth, updated, etag, authorName);
+		await pushRemoteConfig(auth, updated, etag);
 		const location = message.group ? `group "${message.group}"` : 'root parameters';
 		logger.info(`Pushed config: ${message.key} = ${message.value} (${message.type}) → ${location}`);
 		postMessage(panel, { status: 'success', message: 'Successfully pushed config!' });

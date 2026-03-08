@@ -50,12 +50,6 @@
           "default": "",
           "description": "Path to your Firebase service account JSON file.",
           "scope": "resource"
-        },
-        "rmcPush.authorName": {
-          "type": "string",
-          "default": "",
-          "description": "Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').",
-          "scope": "resource"
         }
       }
     }
