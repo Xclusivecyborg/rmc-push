@@ -62,6 +62,8 @@ export interface PushConfigMessage {
 	key: string;
 	value: string;
 	type: RemoteConfigValueType;
+	/** Optional parameter group name. If set, the parameter is placed under parameterGroups[group]. */
+	group?: string;
 }
 
 export type WebviewStatusMessage =
