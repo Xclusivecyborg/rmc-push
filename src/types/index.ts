@@ -3,17 +3,6 @@
 
 export type RemoteConfigValueType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'JSON';
 
-export interface ServiceAccount {
-	type: string;
-	project_id: string;
-	private_key_id: string;
-	private_key: string;
-	client_email: string;
-	client_id: string;
-	auth_uri: string;
-	token_uri: string;
-}
-
 export interface RemoteConfigParameterValue {
 	value?: string;
 	useInAppDefault?: boolean;
@@ -44,17 +33,13 @@ export interface RemoteConfigTemplate {
 	version?: Record<string, unknown>;
 }
 
-export interface OAuthTokenResponse {
-	access_token: string;
-	expires_in: number;
-	token_type: string;
-}
-
 export interface AuthContext {
 	accessToken: string;
 	projectId: string;
 	/** Unix epoch seconds when the token expires */
 	expiresAt: number;
+	userEmail: string;
+	userName?: string;
 }
 
 export interface PushConfigMessage {
@@ -85,26 +70,4 @@ export class FirebaseApiError extends Error {
 		super(message);
 		this.name = 'FirebaseApiError';
 	}
-}
-
-export class ServiceAccountValidationError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'ServiceAccountValidationError';
-	}
-}
-
-// Type guard
-
-export function isServiceAccount(obj: unknown): obj is ServiceAccount {
-	if (typeof obj !== 'object' || obj === null) {
-		return false;
-	}
-	const sa = obj as Record<string, unknown>;
-	return (
-		typeof sa['project_id'] === 'string' &&
-		typeof sa['private_key'] === 'string' &&
-		typeof sa['client_email'] === 'string' &&
-		typeof sa['type'] === 'string'
-	);
 }

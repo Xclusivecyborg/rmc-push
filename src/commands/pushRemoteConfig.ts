@@ -1,56 +1,38 @@
 import * as vscode from 'vscode';
-import { getAuthContext, isTokenExpired } from '../auth/googleAuth';
-import { readServiceAccount, resolveServiceAccountPath } from '../auth/serviceAccount';
+import { getAuthContext } from '../auth/googleAuth';
 import { fetchRemoteConfig, mergeParameter, mergeParameterInGroup, pushRemoteConfig } from '../firebase/remoteConfig';
 import { logger } from '../logger';
-import { AuthContext, AuthError, FirebaseApiError, PushConfigMessage, ServiceAccountValidationError } from '../types/index';
+import { AuthError, FirebaseApiError, PushConfigMessage } from '../types/index';
 import { createOrRevealPanel, postMessage } from '../webview/panel';
-
-let authContext: AuthContext | null = null;
 
 export function registerPushRemoteConfig(context: vscode.ExtensionContext): vscode.Disposable {
 	return vscode.commands.registerCommand('rmc-push.pushRemoteConfig', async () => {
-		// 1. Resolve service account path
-		const path = await resolveServiceAccountPath();
-		if (!path) {
+		// 1. Resolve Firebase project ID
+		const projectId = await resolveProjectId();
+		if (!projectId) {
 			return;
 		}
 
-		// 2. Read + validate service account
-		let serviceAccount;
+		// 2. Sign in with Google (or use cached tokens)
+		let auth;
 		try {
-			serviceAccount = await readServiceAccount(path);
-		} catch (err) {
-			if (err instanceof ServiceAccountValidationError) {
-				vscode.window.showErrorMessage(err.message);
-			} else {
-				vscode.window.showErrorMessage('Failed to read service account file.');
-			}
-			logger.error('Service account error', err);
-			return;
-		}
-
-		// 3. Authenticate (or re-use cached token)
-		try {
-			if (!authContext || isTokenExpired(authContext)) {
-				authContext = await getAuthContext(serviceAccount);
-				logger.info(`Authenticated for project: ${authContext.projectId}`);
-			}
+			auth = await getAuthContext(context.secrets, projectId);
+			logger.info(`Signed in as ${auth.userEmail} for project: ${auth.projectId}`);
 		} catch (err) {
 			if (err instanceof AuthError) {
 				vscode.window.showErrorMessage(err.message);
 			} else {
-				vscode.window.showErrorMessage('Failed to authenticate with Firebase.');
+				vscode.window.showErrorMessage('Failed to sign in with Google.');
 			}
 			logger.error('Authentication error', err);
 			return;
 		}
 
-		// 4. Verify connectivity (quick GET)
+		// 3. Verify connectivity (quick GET)
 		try {
-			await fetchRemoteConfig(authContext);
+			await fetchRemoteConfig(auth);
 			logger.info('Successfully connected to Firebase Remote Config.');
-			vscode.window.showInformationMessage('Authenticated with Firebase. Opening push UI...');
+			vscode.window.showInformationMessage(`Connected to ${projectId}. Opening push UI...`);
 		} catch (err) {
 			if (err instanceof FirebaseApiError) {
 				vscode.window.showErrorMessage('Failed to connect to Firebase: ' + err.message);
@@ -61,49 +43,44 @@ export function registerPushRemoteConfig(context: vscode.ExtensionContext): vsco
 			return;
 		}
 
-		// 5. Open webview
-		const capturedAuth = authContext;
-		const panel = createOrRevealPanel(context, capturedAuth, async (message: PushConfigMessage) => {
-			await handlePushMessage(panel, capturedAuth, message);
-		});
-
-		panel.onDidDispose(() => {
-			authContext = null;
+		// 4. Open webview
+		const panel = createOrRevealPanel(context, auth, async (message: PushConfigMessage) => {
+			await handlePushMessage(panel, context, projectId, message);
 		});
 	});
 }
 
+async function resolveProjectId(): Promise<string | undefined> {
+	const config = vscode.workspace.getConfiguration('rmcPush');
+	const existing = config.get<string>('projectId')?.trim();
+	if (existing) {
+		return existing;
+	}
+
+	const input = await vscode.window.showInputBox({
+		prompt: 'Enter your Firebase Project ID',
+		placeHolder: 'e.g. my-firebase-project-12345',
+		ignoreFocusOut: true,
+		validateInput: v => v.trim() ? null : 'Project ID is required'
+	});
+	if (!input?.trim()) {
+		return undefined;
+	}
+	await config.update('projectId', input.trim(), vscode.ConfigurationTarget.Workspace);
+	return input.trim();
+}
+
 async function handlePushMessage(
 	panel: vscode.WebviewPanel,
-	auth: AuthContext,
+	context: vscode.ExtensionContext,
+	projectId: string,
 	message: PushConfigMessage
 ): Promise<void> {
 	postMessage(panel, { status: 'loading' });
 	try {
-		// Re-auth if token expired
-		if (isTokenExpired(auth)) {
-			logger.info('Token expired — re-authenticating is not possible without service account. Please reset and re-run.');
-			postMessage(panel, { status: 'error', message: 'Session expired. Please re-run the Push command.' });
-			return;
-		}
-
-		const config = vscode.workspace.getConfiguration('rmcPush');
-		let authorName = config.get<string>('authorName')?.trim() || undefined;
-
-		if (!authorName) {
-			const input = await vscode.window.showInputBox({
-				prompt: 'Enter your name for Remote Config version attribution (required)',
-				placeHolder: 'e.g. Ayodeji',
-				ignoreFocusOut: true,
-				validateInput: (value) => value.trim() ? null : 'Name is required to push.'
-			});
-			if (!input?.trim()) {
-				postMessage(panel, { status: 'error', message: 'Push cancelled: author name is required.' });
-				return;
-			}
-			authorName = input.trim();
-			await config.update('authorName', authorName, vscode.ConfigurationTarget.Workspace);
-		}
+		// Always get a fresh AuthContext so tokens are silently refreshed if needed
+		const auth = await getAuthContext(context.secrets, projectId);
+		const authorName = auth.userName || auth.userEmail;
 
 		const { template, etag } = await fetchRemoteConfig(auth);
 		const updated = message.group

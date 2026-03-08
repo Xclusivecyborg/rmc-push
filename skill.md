@@ -34,7 +34,6 @@ A VS Code extension that lets developers push key-value pairs directly to **Fire
 rmc-push/
 ├── src/
 │   ├── auth/googleAuth.ts
-│   ├── auth/serviceAccount.ts
 │   ├── commands/pushRemoteConfig.ts
 │   ├── commands/resetServiceAccount.ts
 │   ├── extension.ts
@@ -61,7 +60,7 @@ rmc-push/
 | Command | ID | Description |
 |---|---|---|
 | Push to Firebase Remote Config | `rmc-push.pushRemoteConfig` | — |
-| Reset Service Account Path | `rmc-push.resetServiceAccountPath` | — |
+| Sign Out | `rmc-push.signOut` | — |
 
 **Activation**: `onCommand:rmc-push.pushRemoteConfig`
 <!-- END AUTO-GENERATED: commands -->
@@ -71,8 +70,7 @@ rmc-push/
 ## Configuration
 
 <!-- AUTO-GENERATED: configuration -->
-- `rmcPush.serviceAccountPath` (string): Path to your Firebase service account JSON file.
-- `rmcPush.authorName` (string): Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').
+- `rmcPush.projectId` (string): Your Firebase Project ID (e.g. 'my-firebase-project-12345').
 <!-- END AUTO-GENERATED: configuration -->
 
 ---

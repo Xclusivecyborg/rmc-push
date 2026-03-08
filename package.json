@@ -36,8 +36,8 @@
         "category": "RMC Push"
       },
       {
-        "command": "rmc-push.resetServiceAccountPath",
-        "title": "Reset Service Account Path",
+        "command": "rmc-push.signOut",
+        "title": "Sign Out",
         "category": "RMC Push"
       }
     ],
@@ -45,16 +45,10 @@
       "type": "object",
       "title": "Firebase Remote Config Push",
       "properties": {
-        "rmcPush.serviceAccountPath": {
+        "rmcPush.projectId": {
           "type": "string",
           "default": "",
-          "description": "Path to your Firebase service account JSON file.",
-          "scope": "resource"
-        },
-        "rmcPush.authorName": {
-          "type": "string",
-          "default": "",
-          "description": "Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').",
+          "description": "Your Firebase Project ID (e.g. 'my-firebase-project-12345').",
           "scope": "resource"
         }
       }
@@ -77,7 +71,6 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/node-fetch": "^2.6.13",
@@ -92,7 +85,6 @@
     "typescript-eslint": "^8.52.0"
   },
   "dependencies": {
-    "jsonwebtoken": "^9.0.3",
     "node-fetch": "^2.7.0"
   }
 }

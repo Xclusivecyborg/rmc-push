@@ -1,50 +1,6 @@
 import * as assert from 'assert';
-import { isServiceAccount } from '../../types/index';
 
 const KEY_REGEX = /^[a-zA-Z0-9_]+$/;
-
-suite('validation — isServiceAccount type guard', () => {
-	test('passes a valid service account object', () => {
-		const valid = {
-			type: 'service_account',
-			project_id: 'my-project',
-			private_key: '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n',
-			client_email: 'sa@my-project.iam.gserviceaccount.com',
-			client_id: '123',
-			private_key_id: 'abc',
-			auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-			token_uri: 'https://oauth2.googleapis.com/token'
-		};
-		assert.strictEqual(isServiceAccount(valid), true);
-	});
-
-	test('fails when project_id is missing', () => {
-		const obj = {
-			type: 'service_account',
-			private_key: 'key',
-			client_email: 'sa@project.iam.gserviceaccount.com'
-		};
-		assert.strictEqual(isServiceAccount(obj), false);
-	});
-
-	test('fails on null', () => {
-		assert.strictEqual(isServiceAccount(null), false);
-	});
-
-	test('fails on a string', () => {
-		assert.strictEqual(isServiceAccount('not-an-object'), false);
-	});
-
-	test('fails when private_key is a number', () => {
-		const obj = {
-			type: 'service_account',
-			project_id: 'p',
-			private_key: 12345,
-			client_email: 'sa@p.iam.gserviceaccount.com'
-		};
-		assert.strictEqual(isServiceAccount(obj), false);
-	});
-});
 
 suite('validation — key regex', () => {
 	test('accepts alphanumeric and underscores', () => {
