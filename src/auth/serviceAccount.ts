@@ -19,7 +19,7 @@ export async function resolveServiceAccountPath(): Promise<string | undefined> {
 	if (fileUri && fileUri[0]) {
 		const path = fileUri[0].fsPath;
 		await config.update('serviceAccountPath', path, vscode.ConfigurationTarget.Workspace);
-		vscode.window.showInformationMessage('Service account file set for this workspace. Please re-run the command.');
+		vscode.window.showInformationMessage('Service account file set for this workspace.');
 		return path;
 	}
 	return undefined;
