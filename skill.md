@@ -8,7 +8,7 @@ A VS Code extension that lets developers push key-value pairs directly to **Fire
 - **Extension ID**: `rmc-push`
 - **Display Name**: Firebase Push
 - **Publisher**: Xclusivecyborg
-- **Version**: 0.0.3
+- **Version**: 0.0.4
 - **Min VS Code**: 1.90.0
 <!-- END AUTO-GENERATED: what-this-is -->
 

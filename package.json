@@ -2,7 +2,7 @@
   "name": "rmc-push",
   "displayName": "Firebase Push",
   "description": "Push data to Firebase Remote Config from VS Code.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "Xclusivecyborg",
   "license": "MIT",
   "icon": "icon.png",
