@@ -1,0 +1,8 @@
+npm run check-types
+npm run lint
+
+# Only update skill.md when package.json is staged
+if git diff --cached --name-only | grep -q "package.json"; then
+  node scripts/update-skill.js
+  git add skill.md
+fi
