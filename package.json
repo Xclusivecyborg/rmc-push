@@ -1,8 +1,8 @@
 {
   "name": "rmc-push",
   "displayName": "Firebase Push",
-  "description": "Push data to Firebase Remote Config from VS Code, focused on Flutter developers.",
-  "version": "0.0.2",
+  "description": "Push data to Firebase Remote Config from VS Code.",
+  "version": "0.0.3",
   "publisher": "Xclusivecyborg",
   "license": "MIT",
   "icon": "icon.png",
@@ -66,7 +66,9 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "update-skill": "node scripts/update-skill.js",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
@@ -78,6 +80,7 @@
     "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
+    "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0"
