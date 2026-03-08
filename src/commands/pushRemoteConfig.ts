@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getAuthContext, isTokenExpired } from '../auth/googleAuth';
 import { readServiceAccount, resolveServiceAccountPath } from '../auth/serviceAccount';
-import { fetchRemoteConfig, mergeParameter, pushRemoteConfig } from '../firebase/remoteConfig';
+import { fetchRemoteConfig, mergeParameter, mergeParameterInGroup, pushRemoteConfig } from '../firebase/remoteConfig';
 import { logger } from '../logger';
 import { AuthContext, AuthError, FirebaseApiError, PushConfigMessage, ServiceAccountValidationError } from '../types/index';
 import { createOrRevealPanel, postMessage } from '../webview/panel';
@@ -88,9 +88,12 @@ async function handlePushMessage(
 		}
 
 		const { template, etag } = await fetchRemoteConfig(auth);
-		const updated = mergeParameter(template, message.key, message.value, message.type);
+		const updated = message.group
+			? mergeParameterInGroup(template, message.group, message.key, message.value, message.type)
+			: mergeParameter(template, message.key, message.value, message.type);
 		await pushRemoteConfig(auth, updated, etag);
-		logger.info(`Pushed config: ${message.key} = ${message.value} (${message.type})`);
+		const location = message.group ? `group "${message.group}"` : 'root parameters';
+		logger.info(`Pushed config: ${message.key} = ${message.value} (${message.type}) → ${location}`);
 		postMessage(panel, { status: 'success', message: 'Successfully pushed config!' });
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);

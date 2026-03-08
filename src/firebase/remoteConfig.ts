@@ -42,6 +42,38 @@ export function mergeParameter(
 	};
 }
 
+/**
+ * Pure function — merges a single parameter into a named parameter group.
+ * Creates the group if it does not exist. Does not mutate the input template.
+ */
+export function mergeParameterInGroup(
+	template: RemoteConfigTemplate,
+	groupName: string,
+	key: string,
+	value: string,
+	type: RemoteConfigValueType
+): RemoteConfigTemplate {
+	const newParam: RemoteConfigParameter = {
+		defaultValue: { value },
+		valueType: type
+	};
+	const existingGroups = template.parameterGroups ?? {};
+	const existingGroup = existingGroups[groupName] ?? { parameters: {} };
+	return {
+		...template,
+		parameterGroups: {
+			...existingGroups,
+			[groupName]: {
+				...existingGroup,
+				parameters: {
+					...existingGroup.parameters,
+					[key]: newParam
+				}
+			}
+		}
+	};
+}
+
 /** PUTs the full merged template back to Firebase using the ETag for optimistic concurrency. */
 export async function pushRemoteConfig(
 	auth: AuthContext,

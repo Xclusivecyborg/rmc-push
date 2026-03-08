@@ -43,6 +43,12 @@ export function getWebviewContent(projectId: string): string {
 			<option value="JSON">JSON</option>
 		</select>
 
+		<label>Add Value To Group <span style="color:#888;font-size:0.85em;">(optional)</span>:</label>
+		<input type="text" id="group" placeholder="e.g. feature_flags (leave blank for root)" />
+		<div class="error-placeholder">
+			<div id="error-group" class="error-msg"></div>
+		</div>
+
 		<button type="submit" id="submitBtn">Push Config</button>
 	</form>
 	<div id="result"></div>
@@ -50,8 +56,10 @@ export function getWebviewContent(projectId: string): string {
 		const vscode = acquireVsCodeApi();
 		const errorKey = document.getElementById('error-key');
 		const errorValue = document.getElementById('error-value');
+		const errorGroup = document.getElementById('error-group');
 		const keyInput = document.getElementById('key');
 		const valueInput = document.getElementById('value');
+		const groupInput = document.getElementById('group');
 		const submitBtn = document.getElementById('submitBtn');
 
 		function showError(element, msg) {
@@ -71,19 +79,27 @@ export function getWebviewContent(projectId: string): string {
 
 		keyInput.addEventListener('input', () => hideError(errorKey));
 		valueInput.addEventListener('input', () => hideError(errorValue));
+		groupInput.addEventListener('input', () => hideError(errorGroup));
 
 		document.getElementById('configForm').addEventListener('submit', function(e) {
 			e.preventDefault();
 			const key = keyInput.value.trim();
 			let value = valueInput.value;
 			const type = document.getElementById('type').value;
+			const group = groupInput.value.trim() || undefined;
 
 			hideError(errorKey);
 			hideError(errorValue);
+			hideError(errorGroup);
 
 			const keyRegex = /^[a-zA-Z0-9_]+$/;
 			if (!keyRegex.test(key)) {
 				showError(errorKey, 'Invalid key: use only alphanumeric characters and underscores');
+				return;
+			}
+
+			if (group && !keyRegex.test(group)) {
+				showError(errorGroup, 'Invalid group name: use only alphanumeric characters and underscores');
 				return;
 			}
 
@@ -107,7 +123,7 @@ export function getWebviewContent(projectId: string): string {
 			}
 
 			setLoading(true);
-			vscode.postMessage({ command: 'pushConfig', key, value, type });
+			vscode.postMessage({ command: 'pushConfig', key, value, type, group });
 		});
 
 		window.addEventListener('message', event => {
