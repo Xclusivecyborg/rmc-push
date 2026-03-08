@@ -78,8 +78,13 @@ export function mergeParameterInGroup(
 export async function pushRemoteConfig(
 	auth: AuthContext,
 	template: RemoteConfigTemplate,
-	etag: string
+	etag: string,
+	authorName?: string
 ): Promise<void> {
+	const description = authorName
+		? `Pushed by ${authorName} via rmc-push`
+		: 'Pushed via rmc-push';
+	const body: RemoteConfigTemplate = { ...template, version: { description } };
 	const res = await fetch(apiUrl(auth.projectId), {
 		method: 'PUT',
 		headers: {
@@ -87,7 +92,7 @@ export async function pushRemoteConfig(
 			'Content-Type': 'application/json; charset=UTF-8',
 			'If-Match': etag
 		},
-		body: JSON.stringify(template)
+		body: JSON.stringify(body)
 	});
 	if (!res.ok) {
 		const errText = await res.text();

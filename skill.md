@@ -72,6 +72,7 @@ rmc-push/
 
 <!-- AUTO-GENERATED: configuration -->
 - `rmcPush.serviceAccountPath` (string): Path to your Firebase service account JSON file.
+- `rmcPush.authorName` (string): Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').
 <!-- END AUTO-GENERATED: configuration -->
 
 ---
