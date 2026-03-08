@@ -3,27 +3,23 @@
 All notable changes to the "rmc-push" extension will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.0.4] — 2026-03-08
+
+### Added
+- Support for pushing parameters into named **parameter groups** (`parameterGroups`)
+- Optional group field in the webview UI — leave blank to push to root parameters
+
+### Fixed
+- Service account file selection no longer requires re-running the command — the push UI now opens immediately after the file is picked
 
 ### Changed
 - Refactored monolithic `extension.ts` into well-structured modules (`auth/`, `firebase/`, `webview/`, `commands/`)
 - Replaced `any` types with typed interfaces and error classes (`AuthError`, `FirebaseApiError`, `ServiceAccountValidationError`)
 - Replaced `fs.readFileSync` with async `fs.promises.readFile`
 - Replaced `console.log`/`console.error` with OutputChannel-based `logger`
-
-### Added
-- `src/types/index.ts` — shared interfaces covering planned features (conditions, parameterGroups)
-- `src/logger.ts` — OutputChannel logger visible in VS Code Output panel
-- Unit tests: `firebase.test.ts`, `validation.test.ts`, `auth.test.ts`
-- `ARCHITECTURE.md` onboarding guide
-- `scripts/update-skill.js` — auto-regenerates AUTO-GENERATED sections of `skill.md`
-- Husky pre-commit hook: type-check, lint, and auto-update `skill.md` when `package.json` changes
-- CSP header in webview HTML
-- `retainContextWhenHidden: true` and `localResourceRoots: []` on webview panel
+- Added CSP header, `retainContextWhenHidden`, and `localResourceRoots: []` to webview panel
 - Loading state: submit button disabled while push is in progress
-
-### Fixed
-- Enabled stricter TypeScript options: `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noUnusedParameters`, `noUnusedLocals`
+- Stricter TypeScript options: `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noUnusedParameters`, `noUnusedLocals`
 
 ---
 
