@@ -154,6 +154,11 @@ button:disabled {
 
 /* ---------- parameter list ---------- */
 
+/* Sits above the filter so creating a parameter is the first thing offered. */
+.actions {
+	padding: var(--rmc-gap) var(--rmc-gap) 0;
+}
+
 .toolbar {
 	display: flex;
 	gap: 6px;
@@ -261,11 +266,6 @@ button:disabled {
 	padding: 2px var(--rmc-gap) 6px 22px;
 	font-size: 0.9em;
 	color: var(--vscode-descriptionForeground);
-}
-
-.footer {
-	padding: var(--rmc-gap);
-	border-top: 1px solid var(--vscode-panel-border);
 }
 
 /* ---------- editor form ---------- */

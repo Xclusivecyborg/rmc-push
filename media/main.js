@@ -209,6 +209,17 @@
 
 		replaceRoot([
 			header(),
+			el('div', { class: 'actions' }, [
+				el('button', {
+					class: 'primary',
+					text: '+ New parameter',
+					onclick: () => {
+						route = { name: 'create' };
+						persist();
+						render();
+					}
+				})
+			]),
 			el('div', { class: 'toolbar' }, [
 				el('input', {
 					class: 'search',
@@ -240,18 +251,7 @@
 					el('p', {
 						text: total === 0 ? 'This project has no parameters yet.' : 'No parameters match the filter.'
 					})
-				]),
-			el('div', { class: 'footer' }, [
-				el('button', {
-					class: 'primary',
-					text: '+ New parameter',
-					onclick: () => {
-						route = { name: 'create' };
-						persist();
-						render();
-					}
-				})
-			])
+				])
 		]);
 	}
 
