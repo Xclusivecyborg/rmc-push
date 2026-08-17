@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { AuthContext, FirebaseApiError, RemoteConfigParameter, RemoteConfigTemplate, RemoteConfigValueType } from '../types/index';
+import { AuthContext, ConfigEntry, ConfigSection, FirebaseApiError, RemoteConfigParameter, RemoteConfigTemplate, RemoteConfigValueType } from '../types/index';
 
 function apiUrl(projectId: string): string {
 	return `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/remoteConfig`;
@@ -17,6 +17,46 @@ export async function fetchRemoteConfig(auth: AuthContext): Promise<{ template: 
 	const etag = res.headers.get('etag') ?? '*';
 	const template = await res.json() as RemoteConfigTemplate;
 	return { template, etag };
+}
+
+function toEntry(key: string, param: RemoteConfigParameter, group?: string): ConfigEntry {
+	const defaultValue = param.defaultValue;
+	return {
+		key,
+		value: defaultValue?.value ?? '',
+		// valueType is optional in the REST API; Firebase treats an absent type as a string.
+		valueType: param.valueType ?? 'STRING',
+		group,
+		conditionCount: Object.keys(param.conditionalValues ?? {}).length,
+		usesInAppDefault: defaultValue?.useInAppDefault === true
+	};
+}
+
+function byKey(a: ConfigEntry, b: ConfigEntry): number {
+	return a.key.localeCompare(b.key);
+}
+
+/**
+ * Pure function — flattens a template into the sections the sidebar renders:
+ * the root parameters first, then each parameter group alphabetically.
+ * Empty groups are preserved so they remain visible and selectable.
+ */
+export function toSections(template: RemoteConfigTemplate): ConfigSection[] {
+	const rootEntries = Object.entries(template.parameters ?? {})
+		.map(([key, param]) => toEntry(key, param))
+		.sort(byKey);
+
+	const groupSections = Object.entries(template.parameterGroups ?? {})
+		.sort(([a], [b]) => a.localeCompare(b))
+		.map(([group, value]): ConfigSection => ({
+			group,
+			description: value.description,
+			entries: Object.entries(value.parameters ?? {})
+				.map(([key, param]) => toEntry(key, param, group))
+				.sort(byKey)
+		}));
+
+	return [{ entries: rootEntries }, ...groupSections];
 }
 
 /**

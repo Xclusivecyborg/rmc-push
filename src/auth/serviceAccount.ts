@@ -1,29 +1,8 @@
 import * as fs from 'fs';
-import * as vscode from 'vscode';
 import { isServiceAccount, ServiceAccount, ServiceAccountValidationError } from '../types/index';
 
-/** Returns the configured service account path, or prompts the user to pick one. */
-export async function resolveServiceAccountPath(): Promise<string | undefined> {
-	const config = vscode.workspace.getConfiguration('rmcPush');
-	const existing = config.get<string>('serviceAccountPath');
-	if (existing) {
-		return existing;
-	}
-
-	vscode.window.showWarningMessage('Please select your Firebase service account JSON file.');
-	const fileUri = await vscode.window.showOpenDialog({
-		canSelectMany: false,
-		filters: { 'JSON': ['json'] },
-		openLabel: 'Select Service Account JSON'
-	});
-	if (fileUri && fileUri[0]) {
-		const path = fileUri[0].fsPath;
-		await config.update('serviceAccountPath', path, vscode.ConfigurationTarget.Workspace);
-		vscode.window.showInformationMessage('Service account file set for this workspace.');
-		return path;
-	}
-	return undefined;
-}
+// Picking and storing the path is RmcPushSession's job — this module only turns
+// a path into a validated ServiceAccount, and so stays free of vscode imports.
 
 /** Reads and validates a service account JSON file. Throws on failure. */
 export async function readServiceAccount(path: string): Promise<ServiceAccount> {

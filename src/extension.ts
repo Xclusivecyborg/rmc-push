@@ -1,14 +1,30 @@
 import * as vscode from 'vscode';
-import { registerPushRemoteConfig } from './commands/pushRemoteConfig';
-import { registerResetServiceAccount } from './commands/resetServiceAccount';
+import { registerCommands } from './commands/index';
 import { logger } from './logger';
+import { RmcPushSession } from './session';
+import { RmcPushViewProvider } from './webview/view';
 
 export function activate(context: vscode.ExtensionContext): void {
 	logger.info('rmc-push extension activated.');
+
+	const session = new RmcPushSession();
+	const provider = new RmcPushViewProvider(session, context.extensionUri);
+
 	context.subscriptions.push(
-		registerPushRemoteConfig(context),
-		registerResetServiceAccount()
+		session,
+		// Every state change re-renders whichever view is currently alive.
+		session.onDidChangeState(state => provider.render(state)),
+		vscode.window.registerWebviewViewProvider(RmcPushViewProvider.viewType, provider, {
+			// Keeps a half-filled form intact when the user switches to another
+			// sidebar view and comes back.
+			webviewOptions: { retainContextWhenHidden: true }
+		}),
+		...registerCommands(session, provider)
 	);
+
+	// Connect in the background so the sidebar is populated the moment it is
+	// first opened, rather than only after the user interacts with it.
+	void session.connect();
 }
 
 export function deactivate(): void {

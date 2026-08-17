@@ -1,0 +1,10 @@
+<!--
+  Activity bar icon. VS Code recolours these to match the theme, so the artwork
+  is a single monochrome stroke drawing bound to currentColor — no literal
+  colours, no fills that would survive theming as solid blocks.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 2.5c2.4 2.5 4.4 4.9 5.5 7.5 1.1 2.6.7 5.2-1.1 7.2-1.2 1.4-2.7 2.2-4.4 2.2s-3.2-.8-4.4-2.2c-1.8-2-2.2-4.6-1.1-7.2 1.1-2.6 3.1-5 5.5-7.5Z"/>
+  <path d="M12 16.8V10.4"/>
+  <path d="M9.7 12.7 12 10.4l2.3 2.3"/>
+</svg>

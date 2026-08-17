@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import { isServiceAccount } from '../../types/index';
-
-const KEY_REGEX = /^[a-zA-Z0-9_]+$/;
+import { normalizeValue, validatePush } from '../../validation';
 
 suite('validation — isServiceAccount type guard', () => {
 	test('passes a valid service account object', () => {
@@ -46,56 +45,80 @@ suite('validation — isServiceAccount type guard', () => {
 	});
 });
 
-suite('validation — key regex', () => {
-	test('accepts alphanumeric and underscores', () => {
-		assert.ok(KEY_REGEX.test('welcome_title'));
-		assert.ok(KEY_REGEX.test('flag123'));
-		assert.ok(KEY_REGEX.test('UPPER_CASE'));
+suite('validation — validatePush keys and groups', () => {
+	const ok = { value: 'v', valueType: 'STRING' as const };
+
+	test('accepts alphanumerics and underscores', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'welcome_title' }), null);
+		assert.strictEqual(validatePush({ ...ok, key: 'flag123' }), null);
+		assert.strictEqual(validatePush({ ...ok, key: 'UPPER_CASE' }), null);
 	});
 
-	test('rejects hyphens', () => {
-		assert.strictEqual(KEY_REGEX.test('bad-key'), false);
+	test('rejects an empty key', () => {
+		assert.deepStrictEqual(validatePush({ ...ok, key: '   ' })?.field, 'key');
 	});
 
-	test('rejects empty string', () => {
-		assert.strictEqual(KEY_REGEX.test(''), false);
+	test('rejects hyphens in a key', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'bad-key' })?.field, 'key');
 	});
 
-	test('rejects spaces', () => {
-		assert.strictEqual(KEY_REGEX.test('has space'), false);
+	test('rejects spaces in a key', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'has space' })?.field, 'key');
+	});
+
+	test('a blank group means root and is allowed', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: '  ' }), null);
+	});
+
+	test('rejects an invalid group name against the group field', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'bad group' })?.field, 'group');
 	});
 });
 
-suite('validation — value types', () => {
-	test('BOOLEAN: accepts "true" and "false"', () => {
-		assert.ok(['true', 'false'].includes('true'));
-		assert.ok(['true', 'false'].includes('false'));
+suite('validation — validatePush value types', () => {
+	const base = { key: 'k' };
+
+	test('an empty value is rejected whatever the type', () => {
+		assert.strictEqual(validatePush({ ...base, value: '', valueType: 'STRING' })?.field, 'value');
 	});
 
-	test('BOOLEAN: rejects "yes"', () => {
-		assert.strictEqual(['true', 'false'].includes('yes'), false);
+	test('STRING accepts anything non-empty', () => {
+		assert.strictEqual(validatePush({ ...base, value: 'anything at all', valueType: 'STRING' }), null);
 	});
 
-	test('NUMBER: valid number parses', () => {
-		const val = '3.14';
-		assert.ok(!isNaN(Number(val)) && val.trim() !== '');
+	test('NUMBER accepts a decimal', () => {
+		assert.strictEqual(validatePush({ ...base, value: '3.14', valueType: 'NUMBER' }), null);
 	});
 
-	test('NUMBER: empty string is invalid', () => {
-		const val = '';
-		assert.ok(isNaN(Number(val)) || val.trim() === '');
+	test('NUMBER rejects a non-numeric string', () => {
+		assert.strictEqual(validatePush({ ...base, value: 'abc', valueType: 'NUMBER' })?.field, 'value');
 	});
 
-	test('NUMBER: non-numeric string is invalid', () => {
-		const val = 'abc';
-		assert.ok(isNaN(Number(val)));
+	test('BOOLEAN accepts true and false in any case', () => {
+		assert.strictEqual(validatePush({ ...base, value: 'true', valueType: 'BOOLEAN' }), null);
+		assert.strictEqual(validatePush({ ...base, value: 'FALSE', valueType: 'BOOLEAN' }), null);
 	});
 
-	test('JSON: valid JSON parses', () => {
-		assert.doesNotThrow(() => JSON.parse('{"key":"value"}'));
+	test('BOOLEAN rejects "yes"', () => {
+		assert.strictEqual(validatePush({ ...base, value: 'yes', valueType: 'BOOLEAN' })?.field, 'value');
 	});
 
-	test('JSON: invalid JSON throws', () => {
-		assert.throws(() => JSON.parse('{bad json}'));
+	test('JSON accepts a valid object', () => {
+		assert.strictEqual(validatePush({ ...base, value: '{"key":"value"}', valueType: 'JSON' }), null);
+	});
+
+	test('JSON rejects malformed input', () => {
+		assert.strictEqual(validatePush({ ...base, value: '{bad json}', valueType: 'JSON' })?.field, 'value');
+	});
+});
+
+suite('validation — normalizeValue', () => {
+	test('lower-cases and trims booleans so Firebase gets exactly true/false', () => {
+		assert.strictEqual(normalizeValue('  TRUE ', 'BOOLEAN'), 'true');
+	});
+
+	test('leaves other types untouched, including surrounding whitespace', () => {
+		assert.strictEqual(normalizeValue('  Hello  ', 'STRING'), '  Hello  ');
+		assert.strictEqual(normalizeValue('42', 'NUMBER'), '42');
 	});
 });
