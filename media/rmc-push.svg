@@ -1,10 +1,18 @@
 <!--
-  Activity bar icon. VS Code recolours these to match the theme, so the artwork
-  is a single monochrome stroke drawing bound to currentColor — no literal
-  colours, no fills that would survive theming as solid blocks.
+  Activity bar icon: the two-peak flame from the extension artwork, with an
+  upward arrow knocked out of it for the "push" action.
+
+  VS Code renders this strip at ~24px and recolours it per theme and per
+  idle/active state, so the icon must be flat, monochrome, and bound to
+  currentColor. Nothing here may carry a literal colour — a hardcoded fill would
+  survive theming as a wrongly-coloured block on light and high-contrast themes.
+
+  The arrow is a second subpath in the same `d`, cut out by fill-rule="evenodd"
+  rather than painted over the flame. Painting it would require knowing the
+  background colour, which is exactly what theming makes unknowable.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 2.5c2.4 2.5 4.4 4.9 5.5 7.5 1.1 2.6.7 5.2-1.1 7.2-1.2 1.4-2.7 2.2-4.4 2.2s-3.2-.8-4.4-2.2c-1.8-2-2.2-4.6-1.1-7.2 1.1-2.6 3.1-5 5.5-7.5Z"/>
-  <path d="M12 16.8V10.4"/>
-  <path d="M9.7 12.7 12 10.4l2.3 2.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path fill="currentColor" fill-rule="evenodd"
+        d="M9.8 2.2 12.4 7.6 14.8 4.6 19 13.4 12 21.4 5 13.4Z
+           M12 9.6 8.6 13.4h2.2v4.2h2.4v-4.2h2.2Z"/>
 </svg>

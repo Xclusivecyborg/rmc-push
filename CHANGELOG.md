@@ -11,7 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Click to edit.** Selecting a parameter opens it pre-filled for editing. Keys and groups are read-only in edit mode, since renaming through the merge API would create a duplicate rather than move the original.
 - `RMC Push: Select Service Account` and `RMC Push: Reload Remote Config` commands.
 - Refresh button in the view's title bar.
-- New extension artwork for the Marketplace listing and README.
+- New extension artwork for the Marketplace listing and README, and a matching
+  activity bar icon derived from its two-peak flame.
 - Service account can be chosen or changed from inside the panel, not only from the Command Palette.
 
 ### Fixed
