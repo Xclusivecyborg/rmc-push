@@ -11,14 +11,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Click to edit.** Selecting a parameter opens it pre-filled for editing. Keys and groups are read-only in edit mode, since renaming through the merge API would create a duplicate rather than move the original.
 - `RMC Push: Select Service Account` and `RMC Push: Reload Remote Config` commands.
 - Refresh button in the view's title bar.
+- New extension artwork for the Marketplace listing and README.
 - Service account can be chosen or changed from inside the panel, not only from the Command Palette.
 
 ### Fixed
+- **Parameter group names now accept spaces.** Groups are display labels in the Firebase console, not code identifiers, so `Feature Flags` is a legitimate name — the old rule applied the parameter-key regex to them and rejected it. Keys themselves are unchanged and still reject spaces.
 - **Expired tokens no longer interrupt you.** The session keeps the service account, so it silently re-authenticates when the access token ages out. Previously a push after ~1 hour failed with "Session expired. Please re-run the Push command."
 - Selecting a service account no longer fails when no workspace folder is open — the path falls back to global scope instead of erroring on an unavailable workspace target.
 - Upgraded `@vscode/test-electron` and `@vscode/test-cli`; the previous versions could not launch VS Code ≥ 1.13x, which renamed the macOS binary from `Electron` to `Code`.
 
 ### Changed
+- **New parameter** now sits above the filter and the list, rather than below a list that could push it off-screen.
 - `Push to Firebase Remote Config` now opens the sidebar rather than running the whole flow itself. Its command id is unchanged, so existing keybindings still work.
 - Webview styling now uses VS Code theme variables throughout, replacing hard-coded colours that looked wrong in light and high-contrast themes.
 - Webview CSP tightened from `script-src 'unsafe-inline'` to a per-load nonce; assets moved to `media/` and served via `localResourceRoots`.

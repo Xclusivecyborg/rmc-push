@@ -70,8 +70,30 @@ suite('validation — validatePush keys and groups', () => {
 		assert.strictEqual(validatePush({ ...ok, key: 'k', group: '  ' }), null);
 	});
 
-	test('rejects an invalid group name against the group field', () => {
-		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'bad group' })?.field, 'group');
+	test('a group name may contain spaces', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'Feature Flags' }), null);
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'A B C' }), null);
+	});
+
+	test('a group name may contain hyphens', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'ab-tests' }), null);
+	});
+
+	test('surrounding whitespace on a group is trimmed, not rejected', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: '  Feature Flags  ' }), null);
+	});
+
+	test('a group name may not start with a space', () => {
+		// Reaches the regex only via a character that survives trimming.
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: '-leading' })?.field, 'group');
+	});
+
+	test('rejects a group name with punctuation', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'k', group: 'bad/group' })?.field, 'group');
+	});
+
+	test('spaces are still rejected in a parameter key', () => {
+		assert.strictEqual(validatePush({ ...ok, key: 'has space' })?.field, 'key');
 	});
 });
 

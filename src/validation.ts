@@ -6,7 +6,15 @@
 
 import { RemoteConfigValueType } from './types/index';
 
+/** Parameter keys are read as code identifiers by client SDKs — no spaces. */
 export const KEY_REGEX = /^[a-zA-Z0-9_]+$/;
+
+/**
+ * Group names are display labels in the Firebase console, not identifiers, so
+ * they routinely contain spaces ("Feature Flags"). Leading and trailing
+ * whitespace is trimmed before this is applied.
+ */
+export const GROUP_REGEX = /^[a-zA-Z0-9_][a-zA-Z0-9_ -]*$/;
 
 export const VALUE_TYPES: RemoteConfigValueType[] = ['STRING', 'NUMBER', 'BOOLEAN', 'JSON'];
 
@@ -39,8 +47,11 @@ export function validatePush(input: PushInput): ValidationError | null {
 	if (!KEY_REGEX.test(key)) {
 		return { field: 'key', message: 'Use only letters, numbers, and underscores' };
 	}
-	if (group !== '' && !KEY_REGEX.test(group)) {
-		return { field: 'group', message: 'Use only letters, numbers, and underscores' };
+	if (group !== '' && !GROUP_REGEX.test(group)) {
+		return {
+			field: 'group',
+			message: 'Use letters, numbers, spaces, underscores, and hyphens'
+		};
 	}
 	if (input.value === '') {
 		return { field: 'value', message: 'Value is required' };

@@ -14,6 +14,8 @@
 	const root = /** @type {HTMLElement} */ (document.getElementById('root'));
 
 	const KEY_REGEX = /^[a-zA-Z0-9_]+$/;
+	// Group names are console display labels, not identifiers, so spaces are fine.
+	const GROUP_REGEX = /^[a-zA-Z0-9_][a-zA-Z0-9_ -]*$/;
 	const VALUE_TYPES = ['STRING', 'NUMBER', 'BOOLEAN', 'JSON'];
 
 	/** Latest state pushed by the host. */
@@ -376,8 +378,8 @@
 			if (!KEY_REGEX.test(key)) {
 				return showFieldError(keyField, 'Use only letters, numbers, and underscores');
 			}
-			if (group !== '' && !KEY_REGEX.test(group)) {
-				return showFieldError(groupField, 'Use only letters, numbers, and underscores');
+			if (group !== '' && !GROUP_REGEX.test(group)) {
+				return showFieldError(groupField, 'Use letters, numbers, spaces, underscores, and hyphens');
 			}
 			if (value === '') {
 				return showFieldError(valueField, 'Value is required');
