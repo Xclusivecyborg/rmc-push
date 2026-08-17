@@ -69,6 +69,8 @@ Before using this extension, make sure you have:
 2. Click the **Firebase Push** icon in the activity bar (the left-hand strip)
 3. Click **Select service account…** and choose the `.json` file you downloaded
 
+<img src="images/sidebar-connect.png" alt="The Firebase Push icon in the VS Code activity bar, with the sidebar prompting for a service account" width="370">
+
 ✅ The path is saved **per workspace**, so you only do this once.
 
 Prefer the keyboard? Open the **Command Palette** (`Cmd + Shift + P` on macOS, `Ctrl + Shift + P` on Windows/Linux) and run **RMC Push: Select Service Account**.
@@ -81,19 +83,29 @@ Prefer the keyboard? Open the **Command Palette** (`Cmd + Shift + P` on macOS, `
 2. Click any parameter to open it
 3. Change the **Value** (and **Type** if needed) and click **Save to Firebase**
 
+<img src="images/sidebar-browse.png" alt="The sidebar listing root parameters and the Feature Flags and checkout groups, each row showing its type and current value" width="370">
+
+*Every parameter and group, with its type and current value. Use the filter box to narrow a long list.*
+
+<img src="images/sidebar-edit.png" alt="The editor for the welcome_title parameter, opened pre-filled with a Save to Firebase button" width="370">
+
+*Clicking a row opens it pre-filled, ready to change and save.*
+
 > Keys cannot be renamed from here—renaming would create a duplicate rather than moving the original. Create a new parameter instead.
 
 ---
 
 ### Step 4: Create a New Value
 
-1. Click **+ New parameter** at the bottom of the sidebar
+1. Click **+ New parameter** at the top of the sidebar
 2. Fill in the form:
    - **Key** → e.g. `enable_new_checkout`
    - **Type** → Boolean / String / Number / JSON
    - **Value** → `true`
    - **Parameter group** → leave blank for root parameters
 3. Click **Push to Firebase** 🎉
+
+<img src="images/sidebar-create.png" alt="The New parameter form with the key enable_new_checkout, type BOOLEAN, value true, and a Push to Firebase button" width="370">
 
 The extension will:
 

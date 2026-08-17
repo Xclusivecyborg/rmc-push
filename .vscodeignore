@@ -3,6 +3,9 @@
 out/**
 node_modules/**
 src/**
+# README screenshots. vsce rewrites relative README links to the repository URL,
+# so these are served from GitHub and do not need to ship in the package.
+images/**
 .gitignore
 .yarnrc
 esbuild.js
