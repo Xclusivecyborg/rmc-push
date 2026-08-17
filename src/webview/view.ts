@@ -7,6 +7,17 @@ import { getWebviewContent } from './content';
 type PushMessage = Extract<WebviewMessage, { type: 'push' }>;
 
 /**
+ * Runs work that nothing awaits, without leaking a rejection.
+ *
+ * An unhandled rejection here surfaces in the debug console as a bare
+ * "rejected promise not handled within 1 second" with no indication of which
+ * extension caused it, so route the failure to our own log instead.
+ */
+function fireAndForget(work: Thenable<unknown>, context: string): void {
+	work.then(undefined, (err: unknown) => logger.error(context, err));
+}
+
+/**
  * Hosts the sidebar. Holds no application state of its own — it renders
  * whatever RmcPushSession reports and forwards user intent back to it, so
  * VS Code can dispose and recreate it at will.
@@ -43,13 +54,13 @@ export class RmcPushViewProvider implements vscode.WebviewViewProvider {
 					this.render(this.session.getState());
 					break;
 				case 'selectAccount':
-					void this.session.selectAccount();
+					fireAndForget(this.session.selectAccount(), 'Selecting a service account failed');
 					break;
 				case 'refresh':
-					void this.session.refresh();
+					fireAndForget(this.session.refresh(), 'Refreshing Remote Config failed');
 					break;
 				case 'push':
-					void this.handlePush(message);
+					fireAndForget(this.handlePush(message), 'Push handling failed');
 					break;
 			}
 		});
@@ -82,7 +93,13 @@ export class RmcPushViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	private post(message: HostMessage): void {
-		void this.view?.webview.postMessage(message);
+		const view = this.view;
+		if (view === undefined) {
+			return;
+		}
+		// Rejects if the webview was disposed between the check and the send —
+		// a normal race when the user hides the sidebar mid-request, not an error.
+		view.webview.postMessage(message).then(undefined, () => undefined);
 	}
 
 	/** Reveals the sidebar and gives it focus. */

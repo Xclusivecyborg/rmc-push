@@ -24,7 +24,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	// Connect in the background so the sidebar is populated the moment it is
 	// first opened, rather than only after the user interacts with it.
-	void session.connect();
+	// connect() reports its own failures into view state; this guard only stops
+	// an unexpected throw from surfacing as an unhandled rejection.
+	session.connect().then(undefined, (err: unknown) => logger.error('Initial connect failed', err));
 }
 
 export function deactivate(): void {

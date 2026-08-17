@@ -17,6 +17,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - **Parameter group names now accept spaces.** Groups are display labels in the Firebase console, not code identifiers, so `Feature Flags` is a legitimate name — the old rule applied the parameter-key regex to them and rejected it. Keys themselves are unchanged and still reject spaces.
+- Logging no longer writes to a disposed OutputChannel. `activate()` starts a connect it does not await, so if the window closed mid-connect the later log line hit a channel that `deactivate()` had already torn down. The channel is now created lazily and writes are dropped after deactivation.
+- Background work started by the view (select account, refresh, push, initial connect) now routes failures to the extension's own log instead of leaking an unhandled rejection into the debug console.
 - **Expired tokens no longer interrupt you.** The session keeps the service account, so it silently re-authenticates when the access token ages out. Previously a push after ~1 hour failed with "Session expired. Please re-run the Push command."
 - Selecting a service account no longer fails when no workspace folder is open — the path falls back to global scope instead of erroring on an unavailable workspace target.
 - Upgraded `@vscode/test-electron` and `@vscode/test-cli`; the previous versions could not launch VS Code ≥ 1.13x, which renamed the macOS binary from `Electron` to `Code`.
