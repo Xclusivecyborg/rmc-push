@@ -1,6 +1,8 @@
 # Firebase Remote Config Push (VS Code)
 
-Push values to **Firebase Remote Config** directly from **VS Code**—no Firebase Console needed.
+Browse and edit **Firebase Remote Config** directly from **VS Code**—no Firebase Console needed.
+
+The extension lives in its own sidebar, like a source-control or test-explorer view: open it once and your project's parameters are right there, ready to edit.
 
 This extension is built for developers who want a **fast, safe, and simple** way to manage Remote Config while staying inside their editor.
 
@@ -10,12 +12,15 @@ This extension is built for developers who want a **fast, safe, and simple** way
 
 ## 🚀 Features
 
-- **Direct Push**: Update Remote Config parameters instantly from VS Code.
+- **Dedicated Sidebar**: Its own icon in the activity bar—no command needed to get back to it.
+- **Browse Your Config**: Every parameter group is a card you can open and close, showing each parameter's type and current value at a glance. Filter by key to find things fast.
+- **Click to Edit**: Select any parameter to open it pre-filled, change the value, and save.
+- **Direct Push**: Create new parameters, in the root or in any group.
 - **Smart Validation**:
-  - **Key Check**: Prevents invalid key formats (e.g., no hyphens allow, only alphanumeric and underscores).
-  - **Type Support**: Locally validates **JSON**, **Number**, **Boolean**, and **String** before pushing.
-- **Interactive UI**: A simple, modern webview form for quick data entry.
-- **Project Awareness**: Displays the active Firebase Project ID in the UI to prevent accidental pushes to the wrong environment.
+  - **Key Check**: Prevents invalid key formats (e.g., no hyphens allowed, only alphanumeric and underscores).
+  - **Type Support**: Validates **JSON**, **Number**, **Boolean**, and **String** before pushing—in the panel for instant feedback, and again before anything reaches Firebase.
+- **Native Look**: Uses your VS Code colour theme, light, dark, or high-contrast.
+- **Project Awareness**: Displays the active Firebase Project ID at the top of the panel to prevent accidental pushes to the wrong environment.
 - **Safe Merging**: Automatically fetches the current template and merges your changes—**never** overwrites your entire configuration.
 - **Workspace Isolation**: Save your service account path per workspace for secure, project-specific workflows.
 
@@ -58,35 +63,49 @@ Before using this extension, make sure you have:
 
 ---
 
-### Step 3: Configure the Extension
+### Step 2: Connect Your Project
 
 1. Open **VS Code**
-2. Open the **Command Palette**
-   - `Cmd + Shift + P` (macOS)
-   - `Ctrl + Shift + P` (Windows/Linux)
-3. Run:
-   ```
-   Push to Firebase Remote Config
-   ```
-4. On first run, you’ll be prompted to:
-   - Select your **service account JSON file**
-   - Make sure you select the correct **service account** for your project that you just downloaded
+2. Click the **Firebase Push** icon in the activity bar (the left-hand strip)
+3. Click **Select service account…** and choose the `.json` file you downloaded
+
+<img src="images/sidebar-connect.png" alt="The Firebase Push icon highlighted in the VS Code activity bar, with the sidebar prompting for a service account JSON file" width="420">
 
 ✅ The path is saved **per workspace**, so you only do this once.
 
+Prefer the keyboard? Open the **Command Palette** (`Cmd + Shift + P` on macOS, `Ctrl + Shift + P` on Windows/Linux) and run **RMC Push: Select Service Account**.
+
 ---
 
-### Step 4: Push a Remote Config Value
+### Step 3: Edit an Existing Value
 
-1. Open the command again:
-   ```
-   Push to Firebase Remote Config
-   ```
+1. The sidebar lists your parameters, grouped exactly as they are in Firebase
+2. Click any parameter to open it
+3. Change the **Value** (and **Type** if needed) and click **Save to Firebase**
+
+<img src="images/sidebar-browse.png" alt="The sidebar connected to a Firebase project, showing each parameter group as its own collapsed card with a count of the parameters inside it" width="420">
+
+*Every group is a card you can open and close, with the number of parameters it holds. Use the filter box to narrow a long list.*
+
+<img src="images/sidebar-edit.png" alt="A group card opened to show its parameters, each with its type and current value, and one parameter highlighted with the note: tap on a parameter to edit it" width="420">
+
+*Open a card to see its parameters with type and current value. Click a row to open it pre-filled, ready to change and save.*
+
+> Keys cannot be renamed from here—renaming would create a duplicate rather than moving the original. Create a new parameter instead.
+
+---
+
+### Step 4: Create a New Value
+
+1. Click **+ New parameter** at the top of the sidebar
 2. Fill in the form:
    - **Key** → e.g. `enable_new_checkout`
    - **Type** → Boolean / String / Number / JSON
    - **Value** → `true`
-3. Confirm and push 🎉
+   - **Parameter group** → leave blank for root parameters
+3. Click **Push to Firebase** 🎉
+
+<img src="images/sidebar-create.png" alt="The + New parameter button highlighted at the top of the sidebar, above the filter box and the group cards" width="420">
 
 The extension will:
 
@@ -114,14 +133,22 @@ rmcPush.serviceAccountPath
 
 ## 🔄 Switching Firebase Projects
 
-If you need to change credentials:
+Click **Change** next to the project name at the top of the sidebar, and pick a different service account file.
 
-1. Open the Command Palette
-2. Run:
-   ```
-   Reset Service Account Path
-   ```
-3. Select a new service account file
+Or open the Command Palette and run **RMC Push: Reset Service Account Path** to disconnect entirely.
+
+---
+
+## ⌨️ Commands
+
+All commands are available from the Command Palette under the **RMC Push** category:
+
+| Command | What it does |
+| --- | --- |
+| **Push to Firebase Remote Config** | Opens and focuses the sidebar |
+| **Select Service Account** | Picks the service account JSON file |
+| **Reset Service Account Path** | Disconnects the current service account |
+| **Reload Remote Config** | Re-fetches the template from Firebase |
 
 ---
 
@@ -131,6 +158,8 @@ If you need to change credentials:
 - ✅ Use separate service accounts for staging & production
 - ❌ Never share service account keys publicly
 - 🔍 Double-check the **Project ID** shown before pushing
+
+> ⚠️ **There is no dry-run.** Every push writes to the live Remote Config template of the connected project and takes effect for real clients immediately. Point the extension at a staging project while you are getting familiar with it.
 
 ---
 

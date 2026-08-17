@@ -9,5 +9,6 @@
         "dist": true // set this to false to include "dist" folder in search results
     },
     // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-    "typescript.tsc.autoDetect": "off"
+    "typescript.tsc.autoDetect": "off",
+    "rmcPush.serviceAccountPath": "/Users/xclusivecyborg/Downloads/blaze-c3a5a-firebase-adminsdk-fbsvc-12ecd5d659.json"
 }

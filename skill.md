@@ -8,7 +8,7 @@ A VS Code extension that lets developers push key-value pairs directly to **Fire
 - **Extension ID**: `rmc-push`
 - **Display Name**: Firebase Push
 - **Publisher**: Xclusivecyborg
-- **Version**: 0.0.3
+- **Version**: 0.1.0
 - **Min VS Code**: 1.90.0
 <!-- END AUTO-GENERATED: what-this-is -->
 
@@ -35,14 +35,15 @@ rmc-push/
 ├── src/
 │   ├── auth/googleAuth.ts
 │   ├── auth/serviceAccount.ts
-│   ├── commands/pushRemoteConfig.ts
-│   ├── commands/resetServiceAccount.ts
+│   ├── commands/index.ts
 │   ├── extension.ts
 │   ├── firebase/remoteConfig.ts
 │   ├── logger.ts
+│   ├── session.ts
 │   ├── types/index.ts
+│   ├── validation.ts
 │   ├── webview/content.ts
-│   ├── webview/panel.ts
+│   ├── webview/view.ts
 ├── scripts/
 │   └── update-skill.js
 ├── dist/extension.js
@@ -61,9 +62,11 @@ rmc-push/
 | Command | ID | Description |
 |---|---|---|
 | Push to Firebase Remote Config | `rmc-push.pushRemoteConfig` | — |
+| Select Service Account | `rmc-push.selectServiceAccount` | — |
 | Reset Service Account Path | `rmc-push.resetServiceAccountPath` | — |
+| Reload Remote Config | `rmc-push.refresh` | — |
 
-**Activation**: `onCommand:rmc-push.pushRemoteConfig`
+**Activation**: ``
 <!-- END AUTO-GENERATED: commands -->
 
 ---
@@ -72,7 +75,6 @@ rmc-push/
 
 <!-- AUTO-GENERATED: configuration -->
 - `rmcPush.serviceAccountPath` (string): Path to your Firebase service account JSON file.
-- `rmcPush.authorName` (string): Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').
 <!-- END AUTO-GENERATED: configuration -->
 
 ---

@@ -1,145 +1,41 @@
-/** Pure function — returns the full HTML for the push UI webview. */
-export function getWebviewContent(projectId: string): string {
+import * as vscode from 'vscode';
+
+function createNonce(): string {
+	const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	let nonce = '';
+	for (let i = 0; i < 32; i++) {
+		nonce += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+	}
+	return nonce;
+}
+
+/**
+ * Returns the shell HTML for the sidebar. It carries no data — the view posts
+ * the current state in once the script signals that it is ready — so this stays
+ * a pure function of the extension's own asset URIs.
+ *
+ * The CSP allows no remote content at all: styles and scripts are served from
+ * the extension directory, and the script additionally has to match a per-load
+ * nonce, so nothing injected into the DOM can execute.
+ */
+export function getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+	const nonce = createNonce();
+	const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'main.js'));
+	const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'main.css'));
+
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
-	<title>Push to Firebase Remote Config</title>
-	<style>
-		body { font-family: sans-serif; padding: 20px; }
-		.error-placeholder { height: 1.5em; margin-bottom: 5px; }
-		.error-msg { color: #f44336; font-size: 0.85em; display: none; }
-		input, select { margin-bottom: 15px; width: 100%; box-sizing: border-box; padding: 8px; }
-		button { padding: 10px 20px; cursor: pointer; background: #007acc; color: white; border: none; border-radius: 4px; display: block; width: 100%; }
-		button:hover:not(:disabled) { background: #0062a3; }
-		button:disabled { opacity: 0.5; cursor: not-allowed; }
-		#result { margin-top: 25px; }
-		.success-text { color: #4db33d; font-size: 1.15em; font-weight: 500; }
-		.error-text { color: #f44336; font-size: 1em; }
-		.loading-text { color: #888; font-size: 1em; }
-	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy"
+		content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+	<link href="${styleUri}" rel="stylesheet">
+	<title>Firebase Remote Config</title>
 </head>
 <body>
-	<h2>Push to Remote Config: <span style="color: #007acc;">${projectId}</span></h2>
-	<form id="configForm">
-		<label>Key:</label>
-		<input type="text" id="key" placeholder="e.g. welcome_title" required />
-		<div class="error-placeholder">
-			<div id="error-key" class="error-msg"></div>
-		</div>
-
-		<label>Value:</label>
-		<input type="text" id="value" placeholder="Enter value..." required />
-		<div class="error-placeholder">
-			<div id="error-value" class="error-msg"></div>
-		</div>
-
-		<label>Type:</label>
-		<select id="type">
-			<option value="STRING">String</option>
-			<option value="NUMBER">Number</option>
-			<option value="BOOLEAN">Boolean</option>
-			<option value="JSON">JSON</option>
-		</select>
-
-		<label>Add Value To Group <span style="color:#888;font-size:0.85em;">(optional)</span>:</label>
-		<input type="text" id="group" placeholder="e.g. feature_flags (leave blank for root)" />
-		<div class="error-placeholder">
-			<div id="error-group" class="error-msg"></div>
-		</div>
-
-		<button type="submit" id="submitBtn">Push Config</button>
-	</form>
-	<div id="result"></div>
-	<script>
-		const vscode = acquireVsCodeApi();
-		const errorKey = document.getElementById('error-key');
-		const errorValue = document.getElementById('error-value');
-		const errorGroup = document.getElementById('error-group');
-		const keyInput = document.getElementById('key');
-		const valueInput = document.getElementById('value');
-		const groupInput = document.getElementById('group');
-		const submitBtn = document.getElementById('submitBtn');
-
-		function showError(element, msg) {
-			element.textContent = msg;
-			element.style.display = 'block';
-		}
-
-		function hideError(element) {
-			element.style.display = 'none';
-			element.textContent = '';
-		}
-
-		function setLoading(loading) {
-			submitBtn.disabled = loading;
-			submitBtn.textContent = loading ? 'Pushing...' : 'Push Config';
-		}
-
-		keyInput.addEventListener('input', () => hideError(errorKey));
-		valueInput.addEventListener('input', () => hideError(errorValue));
-		groupInput.addEventListener('input', () => hideError(errorGroup));
-
-		document.getElementById('configForm').addEventListener('submit', function(e) {
-			e.preventDefault();
-			const key = keyInput.value.trim();
-			let value = valueInput.value;
-			const type = document.getElementById('type').value;
-			const group = groupInput.value.trim() || undefined;
-
-			hideError(errorKey);
-			hideError(errorValue);
-			hideError(errorGroup);
-
-			const keyRegex = /^[a-zA-Z0-9_]+$/;
-			if (!keyRegex.test(key)) {
-				showError(errorKey, 'Invalid key: use only alphanumeric characters and underscores');
-				return;
-			}
-
-			if (group && !keyRegex.test(group)) {
-				showError(errorGroup, 'Invalid group name: use only alphanumeric characters and underscores');
-				return;
-			}
-
-			try {
-				if (type === 'JSON') {
-					JSON.parse(value);
-				} else if (type === 'NUMBER') {
-					if (isNaN(Number(value)) || value.trim() === '') {
-						throw new Error('Invalid number format');
-					}
-				} else if (type === 'BOOLEAN') {
-					const lowerVal = value.toLowerCase().trim();
-					if (lowerVal !== 'true' && lowerVal !== 'false') {
-						throw new Error('Boolean must be "true" or "false"');
-					}
-					value = lowerVal;
-				}
-			} catch (err) {
-				showError(errorValue, err.message);
-				return;
-			}
-
-			setLoading(true);
-			vscode.postMessage({ command: 'pushConfig', key, value, type, group });
-		});
-
-		window.addEventListener('message', event => {
-			const msg = event.data;
-			const result = document.getElementById('result');
-			if (msg.status === 'loading') {
-				result.innerHTML = '<div class="loading-text">Pushing...</div>';
-			} else if (msg.status === 'success') {
-				setLoading(false);
-				result.innerHTML = '<div class="success-text">' + msg.message + '</div>';
-			} else if (msg.status === 'error') {
-				setLoading(false);
-				result.innerHTML = '<div class="error-text">Failed to update: ' + msg.message + '</div>';
-			}
-		});
-	</script>
+	<div id="root"></div>
+	<script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
 }

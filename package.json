@@ -2,7 +2,7 @@
   "name": "rmc-push",
   "displayName": "Firebase Push",
   "description": "Push data to Firebase Remote Config from VS Code.",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "publisher": "Xclusivecyborg",
   "license": "MIT",
   "icon": "icon.png",
@@ -24,11 +24,27 @@
     "mobile",
     "push"
   ],
-  "activationEvents": [
-    "onCommand:rmc-push.pushRemoteConfig"
-  ],
+  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rmcPush",
+          "title": "Firebase Push",
+          "icon": "media/rmc-push.svg"
+        }
+      ]
+    },
+    "views": {
+      "rmcPush": [
+        {
+          "id": "rmcPush.configView",
+          "name": "Remote Config",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "rmc-push.pushRemoteConfig",
@@ -36,11 +52,31 @@
         "category": "RMC Push"
       },
       {
+        "command": "rmc-push.selectServiceAccount",
+        "title": "Select Service Account",
+        "category": "RMC Push"
+      },
+      {
         "command": "rmc-push.resetServiceAccountPath",
         "title": "Reset Service Account Path",
         "category": "RMC Push"
+      },
+      {
+        "command": "rmc-push.refresh",
+        "title": "Reload Remote Config",
+        "category": "RMC Push",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "rmc-push.refresh",
+          "when": "view == rmcPush.configView",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Firebase Remote Config Push",
@@ -49,12 +85,6 @@
           "type": "string",
           "default": "",
           "description": "Path to your Firebase service account JSON file.",
-          "scope": "resource"
-        },
-        "rmcPush.authorName": {
-          "type": "string",
-          "default": "",
-          "description": "Your name to include in Remote Config version descriptions (e.g. 'Ayodeji').",
           "scope": "resource"
         }
       }
@@ -82,8 +112,8 @@
     "@types/node": "22.x",
     "@types/node-fetch": "^2.6.13",
     "@types/vscode": "^1.90.0",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "husky": "^9.1.7",

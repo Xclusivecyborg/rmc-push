@@ -1,0 +1,7 @@
+
+
+1. [x] Make provision for data to be created in groups on firebase remote Config
+2. Make provision for data to be created with conditions on firebase remote Config
+3. Make provision for data to be created with parameter groups on firebase remote Config
+4. Make provision for data to be created with parameter groups and conditions on firebase remote Config
+5. Add project name to the webview UI where you have 'Push to Firebase Remote Config'. 

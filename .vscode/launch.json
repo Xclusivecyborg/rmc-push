@@ -10,7 +10,12 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				// Load only this extension. Without it the dev host also loads every
+				// extension you have installed, and their logs, deprecation warnings
+				// and telemetry failures fill the debug console — which makes it
+				// useless for diagnosing this extension.
+				"--disable-extensions"
 			],
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
