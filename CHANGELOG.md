@@ -3,6 +3,31 @@
 All notable changes to the "rmc-push" extension will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.0.5] — 2026-08-17
+
+### Added
+- **Dedicated sidebar view.** The extension now has its own activity bar icon and a docked panel, instead of opening a webview in an editor tab.
+- **Browse existing configuration.** The panel lists every root parameter and parameter group already in the project, with type and current value, and a filter box to search by key.
+- **Click to edit.** Selecting a parameter opens it pre-filled for editing. Keys and groups are read-only in edit mode, since renaming through the merge API would create a duplicate rather than move the original.
+- `RMC Push: Select Service Account` and `RMC Push: Reload Remote Config` commands.
+- Refresh button in the view's title bar.
+- Service account can be chosen or changed from inside the panel, not only from the Command Palette.
+
+### Fixed
+- **Expired tokens no longer interrupt you.** The session keeps the service account, so it silently re-authenticates when the access token ages out. Previously a push after ~1 hour failed with "Session expired. Please re-run the Push command."
+- Selecting a service account no longer fails when no workspace folder is open — the path falls back to global scope instead of erroring on an unavailable workspace target.
+- Upgraded `@vscode/test-electron` and `@vscode/test-cli`; the previous versions could not launch VS Code ≥ 1.13x, which renamed the macOS binary from `Electron` to `Code`.
+
+### Changed
+- `Push to Firebase Remote Config` now opens the sidebar rather than running the whole flow itself. Its command id is unchanged, so existing keybindings still work.
+- Webview styling now uses VS Code theme variables throughout, replacing hard-coded colours that looked wrong in light and high-contrast themes.
+- Webview CSP tightened from `script-src 'unsafe-inline'` to a per-load nonce; assets moved to `media/` and served via `localResourceRoots`.
+- State moved out of the command closure into `RmcPushSession`, so the view can be disposed and recreated (which VS Code does whenever the sidebar is hidden) without losing the connection.
+- Push input is now validated on the extension host as well as in the webview.
+- Replaced self-referential validation tests that re-implemented the rules inside the assertions with tests against the real `validatePush` and `toSections` functions.
+
+---
+
 ## [0.0.4] — 2026-03-08
 
 ### Added
