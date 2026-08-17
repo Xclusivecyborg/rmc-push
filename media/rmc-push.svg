@@ -1,6 +1,8 @@
 <!--
-  Activity bar icon: the two-peak flame from the extension artwork, with an
-  upward arrow knocked out of it for the "push" action.
+  Activity bar icon: the Firebase flame enclosed in curly braces — "the config,
+  pushed". The flame carries the Firebase association, the braces say the thing
+  being pushed is configuration, and the arrow knocked out of the flame is the
+  push itself.
 
   VS Code renders this strip at ~24px and recolours it per theme and per
   idle/active state, so the icon must be flat, monochrome, and bound to
@@ -10,9 +12,27 @@
   The arrow is a second subpath in the same `d`, cut out by fill-rule="evenodd"
   rather than painted over the flame. Painting it would require knowing the
   background colour, which is exactly what theming makes unknowable.
+
+  The flame is the original geometry scaled to 0.786 about (12, 12) so it clears
+  the braces by a full unit on each side. That scale is the binding constraint:
+  any larger and the flame collides with the brace stems, any smaller and the
+  knocked-out arrow closes up at 20px.
+
+  The viewBox crops to the glyph plus ~0.6 units of margin rather than sitting
+  at 0 0 24 24, so the mark fills ~95% of the strip and matches the optical
+  weight of the built-in codicons beside it. Keep this path identical to the two
+  tool window icons in the rmc-push-intellij repo — edit the shape in one place
+  and paste it into the other three files, changing only the colour binding.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0.9 0.9 22.2 22.2" width="24" height="24">
+  <g fill="none" stroke="currentColor" stroke-width="1.8"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.2 3.6 Q4.6 3.6 4.6 6.2 L4.6 9.8 Q4.6 12 2.4 12
+             Q4.6 12 4.6 14.2 L4.6 17.8 Q4.6 20.4 7.2 20.4"/>
+    <path d="M16.8 3.6 Q19.4 3.6 19.4 6.2 L19.4 9.8 Q19.4 12 21.6 12
+             Q19.4 12 19.4 14.2 L19.4 17.8 Q19.4 20.4 16.8 20.4"/>
+  </g>
   <path fill="currentColor" fill-rule="evenodd"
-        d="M9.8 2.2 12.4 7.6 14.8 4.6 19 13.4 12 21.4 5 13.4Z
-           M12 9.6 8.6 13.4h2.2v4.2h2.4v-4.2h2.2Z"/>
+        d="M10.27 4.45 12.31 8.7 14.2 6.34 17.5 13.26 12 19.55 6.5 13.26Z
+           M12 10.27 9.33 13.26h1.73v3.3h1.89v-3.3h1.73Z"/>
 </svg>

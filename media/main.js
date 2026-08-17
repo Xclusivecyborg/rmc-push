@@ -177,10 +177,10 @@
 			return null;
 		}
 
-		const title = el(
+		const head = el(
 			'button',
 			{
-				class: 'section-title',
+				class: 'tile-head',
 				'aria-expanded': String(!isCollapsed),
 				title: section.description || undefined,
 				onclick: () => {
@@ -192,17 +192,21 @@
 			[
 				el('span', { class: 'chevron', text: '⌄' }),
 				el('span', { class: 'name', text: section.group || 'Parameters' }),
-				el('span', { class: 'muted', text: String(entries.length) })
+				el('span', { class: 'count', text: String(entries.length) })
 			]
 		);
 
-		const body = isCollapsed
-			? []
-			: entries.length > 0
+		const rows =
+			entries.length > 0
 				? entries.map(entryRow)
 				: [el('div', { class: 'empty-note', text: 'No parameters' })];
 
-		return el('div', {}, [title, ...body]);
+		// Collapsed tiles drop their body rather than hiding it, so the card
+		// shrinks to just the header instead of leaving a stub of empty padding.
+		return el('div', { class: 'tile' }, [
+			head,
+			!isCollapsed && el('div', { class: 'tile-body' }, rows)
+		]);
 	}
 
 	function renderList() {
@@ -248,7 +252,7 @@
 				})
 			]),
 			blocks.length > 0
-				? el('div', {}, blocks)
+				? el('div', { class: 'tiles' }, blocks)
 				: el('div', { class: 'placeholder' }, [
 					el('p', {
 						text: total === 0 ? 'This project has no parameters yet.' : 'No parameters match the filter.'
