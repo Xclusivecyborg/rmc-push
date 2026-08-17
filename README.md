@@ -13,7 +13,7 @@ This extension is built for developers who want a **fast, safe, and simple** way
 ## 🚀 Features
 
 - **Dedicated Sidebar**: Its own icon in the activity bar—no command needed to get back to it.
-- **Browse Your Config**: Lists every existing parameter and parameter group, with type and current value at a glance. Filter by key to find things fast.
+- **Browse Your Config**: Every parameter group is a card you can open and close, showing each parameter's type and current value at a glance. Filter by key to find things fast.
 - **Click to Edit**: Select any parameter to open it pre-filled, change the value, and save.
 - **Direct Push**: Create new parameters, in the root or in any group.
 - **Smart Validation**:
@@ -83,13 +83,13 @@ Prefer the keyboard? Open the **Command Palette** (`Cmd + Shift + P` on macOS, `
 2. Click any parameter to open it
 3. Change the **Value** (and **Type** if needed) and click **Save to Firebase**
 
-<img src="images/sidebar-browse.png" alt="The sidebar connected to a Firebase project, listing parameter groups with one expanded to show each parameter's type and current value" width="420">
+<img src="images/sidebar-browse.png" alt="The sidebar connected to a Firebase project, showing each parameter group as its own collapsed card with a count of the parameters inside it" width="420">
 
-*Every parameter and group, with its type and current value. Use the filter box to narrow a long list.*
+*Every group is a card you can open and close, with the number of parameters it holds. Use the filter box to narrow a long list.*
 
-<img src="images/sidebar-edit.png" alt="The editor for the welcome_title parameter, opened pre-filled with a Save to Firebase button" width="370">
+<img src="images/sidebar-edit.png" alt="A group card opened to show its parameters, each with its type and current value, and one parameter highlighted with the note: tap on a parameter to edit it" width="420">
 
-*Clicking a row opens it pre-filled, ready to change and save.*
+*Open a card to see its parameters with type and current value. Click a row to open it pre-filled, ready to change and save.*
 
 > Keys cannot be renamed from here—renaming would create a duplicate rather than moving the original. Create a new parameter instead.
 
@@ -105,7 +105,7 @@ Prefer the keyboard? Open the **Command Palette** (`Cmd + Shift + P` on macOS, `
    - **Parameter group** → leave blank for root parameters
 3. Click **Push to Firebase** 🎉
 
-<img src="images/sidebar-create.png" alt="The + New parameter button at the top of the sidebar, above the filter box and the list of parameter groups" width="420">
+<img src="images/sidebar-create.png" alt="The + New parameter button highlighted at the top of the sidebar, above the filter box and the group cards" width="420">
 
 The extension will:
 

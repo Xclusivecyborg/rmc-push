@@ -3,11 +3,12 @@
 All notable changes to the "rmc-push" extension will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.0.5] — 2026-08-17
+## [0.1.0] — 2026-08-17
 
 ### Added
 - **Dedicated sidebar view.** The extension now has its own activity bar icon and a docked panel, instead of opening a webview in an editor tab.
 - **Browse existing configuration.** The panel lists every root parameter and parameter group already in the project, with type and current value, and a filter box to search by key.
+- **Parameter groups are cards.** Each group is its own rounded, spaced card with an accent edge and a count of the parameters inside it, rather than a dim header line above an indented list. Rows are taller, with the key on one line and its type and value beneath.
 - **Click to edit.** Selecting a parameter opens it pre-filled for editing. Keys and groups are read-only in edit mode, since renaming through the merge API would create a duplicate rather than move the original.
 - `RMC Push: Select Service Account` and `RMC Push: Reload Remote Config` commands.
 - Refresh button in the view's title bar.
@@ -21,6 +22,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Background work started by the view (select account, refresh, push, initial connect) now routes failures to the extension's own log instead of leaking an unhandled rejection into the debug console.
 - **Expired tokens no longer interrupt you.** The session keeps the service account, so it silently re-authenticates when the access token ages out. Previously a push after ~1 hour failed with "Session expired. Please re-run the Push command."
 - Selecting a service account no longer fails when no workspace folder is open — the path falls back to global scope instead of erroring on an unavailable workspace target.
+- A long value no longer widens the whole sidebar. The value line is a flex item, which refuses to shrink below its content unless told to, so an unbroken string such as a one-line JSON object forced the panel wider instead of being ellipsised.
 - Upgraded `@vscode/test-electron` and `@vscode/test-cli`; the previous versions could not launch VS Code ≥ 1.13x, which renamed the macOS binary from `Electron` to `Code`.
 
 ### Changed
