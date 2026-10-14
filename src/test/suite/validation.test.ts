@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { isServiceAccount } from '../../types/index';
-import { normalizeValue, validatePush } from '../../validation';
+import { JSON_SHAPE_MESSAGE, normalizeValue, validatePush } from '../../validation';
 
 suite('validation — isServiceAccount type guard', () => {
 	test('passes a valid service account object', () => {
@@ -127,6 +127,19 @@ suite('validation — validatePush value types', () => {
 
 	test('JSON accepts a valid object', () => {
 		assert.strictEqual(validatePush({ ...base, value: '{"key":"value"}', valueType: 'JSON' }), null);
+	});
+
+	test('JSON rejects bare values that parse but are not objects or arrays', () => {
+		// Flipping a Boolean parameter to JSON carries its "false" across; that
+		// must not reach Firebase as a JSON parameter.
+		for (const bare of ['false', 'true', '42', '"hi"', 'null']) {
+			assert.strictEqual(
+				validatePush({ ...base, value: bare, valueType: 'JSON' })?.message,
+				JSON_SHAPE_MESSAGE,
+				bare
+			);
+		}
+		assert.strictEqual(validatePush({ ...base, value: '[1, 2]', valueType: 'JSON' }), null);
 	});
 
 	test('JSON rejects malformed input', () => {
