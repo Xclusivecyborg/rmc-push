@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { AuthContext, ConfigEntry, ConfigSection, FirebaseApiError, RemoteConfigParameter, RemoteConfigTemplate, RemoteConfigValueType } from '../types/index';
+import { AuthContext, ConfigEntry, ConfigSection, FirebaseApiError, ParameterChange, RemoteConfigParameter, RemoteConfigTemplate, RemoteConfigValueType } from '../types/index';
 
 function apiUrl(projectId: string): string {
 	return `https://firebaseremoteconfig.googleapis.com/v1/projects/${projectId}/remoteConfig`;
@@ -28,7 +28,8 @@ function toEntry(key: string, param: RemoteConfigParameter, group?: string): Con
 		valueType: param.valueType ?? 'STRING',
 		group,
 		conditionCount: Object.keys(param.conditionalValues ?? {}).length,
-		usesInAppDefault: defaultValue?.useInAppDefault === true
+		usesInAppDefault: defaultValue?.useInAppDefault === true,
+		description: param.description?.trim() || undefined
 	};
 }
 
@@ -60,6 +61,21 @@ export function toSections(template: RemoteConfigTemplate): ConfigSection[] {
 }
 
 /**
+ * The parameter to write: [existing] with its default value and type replaced.
+ *
+ * Everything else on it — conditionalValues, description, whatever Firebase adds
+ * next — is carried over. A push writes the whole template back, so a field
+ * dropped here is deleted from the user's project.
+ */
+function withDefault(
+	existing: RemoteConfigParameter | undefined,
+	value: string,
+	type: RemoteConfigValueType
+): RemoteConfigParameter {
+	return { ...(existing ?? {}), defaultValue: { value }, valueType: type };
+}
+
+/**
  * Pure function — merges a single parameter into an existing template.
  * Does not mutate the input template.
  */
@@ -69,10 +85,7 @@ export function mergeParameter(
 	value: string,
 	type: RemoteConfigValueType
 ): RemoteConfigTemplate {
-	const newParam: RemoteConfigParameter = {
-		defaultValue: { value },
-		valueType: type
-	};
+	const newParam = withDefault(template.parameters?.[key], value, type);
 	return {
 		...template,
 		parameters: {
@@ -93,12 +106,9 @@ export function mergeParameterInGroup(
 	value: string,
 	type: RemoteConfigValueType
 ): RemoteConfigTemplate {
-	const newParam: RemoteConfigParameter = {
-		defaultValue: { value },
-		valueType: type
-	};
 	const existingGroups = template.parameterGroups ?? {};
 	const existingGroup = existingGroups[groupName] ?? { parameters: {} };
+	const newParam = withDefault(existingGroup.parameters?.[key], value, type);
 	return {
 		...template,
 		parameterGroups: {
@@ -112,6 +122,29 @@ export function mergeParameterInGroup(
 			}
 		}
 	};
+}
+
+/**
+ * Pure function — applies every change, in order, to the template, so a batch
+ * lands as one template version: Firebase accepts all of it or none of it.
+ * Does not mutate the input template.
+ */
+export function mergeChanges(template: RemoteConfigTemplate, changes: ParameterChange[]): RemoteConfigTemplate {
+	return changes.reduce(
+		(acc, change) => change.group
+			? mergeParameterInGroup(acc, change.group, change.key, change.value, change.valueType)
+			: mergeParameter(acc, change.key, change.value, change.valueType),
+		template
+	);
+}
+
+/** Every parameter key in the template, root and grouped. */
+export function keysOf(template: RemoteConfigTemplate): Set<string> {
+	const keys = new Set(Object.keys(template.parameters ?? {}));
+	for (const group of Object.values(template.parameterGroups ?? {})) {
+		Object.keys(group.parameters ?? {}).forEach(key => keys.add(key));
+	}
+	return keys;
 }
 
 /** PUTs the full merged template back to Firebase using the ETag for optimistic concurrency. */

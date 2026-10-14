@@ -10,14 +10,14 @@ import { getAuthContext, isTokenExpired } from './auth/googleAuth';
 import { readServiceAccount } from './auth/serviceAccount';
 import {
 	fetchRemoteConfig,
-	mergeParameter,
-	mergeParameterInGroup,
+	keysOf,
+	mergeChanges,
 	pushRemoteConfig,
 	toSections
 } from './firebase/remoteConfig';
 import { logger } from './logger';
-import { AuthContext, ServiceAccount, ViewState } from './types/index';
-import { normalizeValue, PushInput, validatePush } from './validation';
+import { AuthContext, ConfigSection, ParameterChange, ServiceAccount, ViewState } from './types/index';
+import { normalizeValue, validatePush } from './validation';
 
 const CONFIG_SECTION = 'rmcPush';
 const CONFIG_KEY = 'serviceAccountPath';
@@ -38,6 +38,11 @@ export class RmcPushSession implements vscode.Disposable {
 	private state: ViewState = { kind: 'no-account' };
 	private serviceAccount: ServiceAccount | null = null;
 	private auth: AuthContext | null = null;
+
+	/** Changes waiting for a batch push, by key. */
+	private readonly staged = new Map<string, ParameterChange>();
+	/** The account the batch was staged against; a different one discards it. */
+	private stagedForPath = '';
 
 	/**
 	 * Incremented on every connect(). An in-flight connect whose generation is
@@ -92,6 +97,11 @@ export class RmcPushSession implements vscode.Disposable {
 		const isCurrent = (): boolean => generation === this.generation;
 
 		const path = RmcPushSession.readConfiguredPath();
+		// Staged changes belong to the project they were made against.
+		if (path !== this.stagedForPath) {
+			this.staged.clear();
+			this.stagedForPath = path;
+		}
 		if (path === '') {
 			this.serviceAccount = null;
 			this.auth = null;
@@ -150,12 +160,24 @@ export class RmcPushSession implements vscode.Disposable {
 		if (!isCurrent()) {
 			return;
 		}
+		this.setReady(auth, toSections(template));
+	}
+
+	private setReady(auth: AuthContext, sections: ConfigSection[]): void {
 		this.setState({
 			kind: 'ready',
 			projectId: auth.projectId,
 			accountPath: RmcPushSession.readConfiguredPath(),
-			sections: toSections(template)
+			sections,
+			staged: [...this.staged.values()]
 		});
+	}
+
+	/** Re-sends the ready state after the batch changed. */
+	private emitStaged(): void {
+		if (this.state.kind === 'ready') {
+			this.setState({ ...this.state, staged: [...this.staged.values()] });
+		}
 	}
 
 	/**
@@ -208,41 +230,128 @@ export class RmcPushSession implements vscode.Disposable {
 	}
 
 	/**
-	 * Validates, merges, and pushes a single parameter, then reloads the
-	 * template so the sidebar reflects what Firebase now holds.
-	 *
-	 * The template is re-fetched immediately before the write so the ETag is
-	 * fresh; a stale one would be rejected by the API.
+	 * Validates, merges, and pushes a single parameter, then shows the template
+	 * Firebase now holds. Anything staged for the same key is dropped — this
+	 * push supersedes it.
 	 */
-	async push(input: PushInput): Promise<void> {
+	async push(input: ParameterChange): Promise<void> {
+		const change = RmcPushSession.checked(input);
+		await this.write([change]);
+		this.staged.delete(change.key);
+		this.emitStaged();
+	}
+
+	/** Adds a change to the batch, replacing anything already staged for its key. */
+	stage(input: ParameterChange): void {
+		const change = RmcPushSession.checked(input);
+		if (change.isNew && this.state.kind === 'ready') {
+			const taken = this.state.sections.some(s => s.entries.some(e => e.key === change.key));
+			if (taken) {
+				throw new PushValidationError(`A parameter named "${change.key}" already exists`, 'key');
+			}
+		}
+		this.staged.set(change.key, change);
+		this.emitStaged();
+	}
+
+	/**
+	 * Stages several changes at once — an import, or the batch form. All are
+	 * validated before any is staged, so a bad row cannot leave half a batch.
+	 */
+	stageMany(inputs: ParameterChange[]): void {
+		const changes = inputs.map(input => {
+			try {
+				return RmcPushSession.checked(input);
+			} catch (err) {
+				const reason = err instanceof Error ? err.message : String(err);
+				throw new PushValidationError(`"${input.key}": ${reason}`, 'key');
+			}
+		});
+		changes.forEach(change => this.staged.set(change.key, change));
+		this.emitStaged();
+	}
+
+	unstage(key: string): void {
+		if (this.staged.delete(key)) {
+			this.emitStaged();
+		}
+	}
+
+	discardStaged(): void {
+		this.staged.clear();
+		this.emitStaged();
+	}
+
+	getStaged(): ParameterChange[] {
+		return [...this.staged.values()];
+	}
+
+	/**
+	 * Pushes [changes] — normally everything staged — as one template version.
+	 * On success they leave the batch, unless one was re-staged with a
+	 * different value while the push was in flight; that newer edit is kept.
+	 */
+	async pushStaged(changes: ParameterChange[]): Promise<void> {
+		if (changes.length === 0) {
+			throw new PushValidationError('Nothing to push', 'key');
+		}
+		const checked = changes.map(RmcPushSession.checked);
+		await this.write(checked);
+		for (const pushed of changes) {
+			const current = this.staged.get(pushed.key);
+			if (current !== undefined && sameChange(current, pushed)) {
+				this.staged.delete(pushed.key);
+			}
+		}
+		this.emitStaged();
+	}
+
+	/**
+	 * Re-fetches immediately before the write so the ETag is fresh — a stale
+	 * one would be rejected by the API — then merges and PUTs once.
+	 */
+	private async write(changes: ParameterChange[]): Promise<void> {
+		const auth = await this.ensureAuth();
+		const { template, etag } = await fetchRemoteConfig(auth);
+
+		// Firebase keys are unique across root and groups; a "new" key that
+		// already exists would land as a second parameter and be rejected.
+		const existing = keysOf(template);
+		const clash = changes.find(c => c.isNew && existing.has(c.key));
+		if (clash) {
+			throw new PushValidationError(`A parameter named "${clash.key}" already exists`, 'key');
+		}
+
+		const updated = mergeChanges(template, changes);
+		await pushRemoteConfig(auth, updated, etag);
+		logger.info(`Pushed ${changes.map(c => `${c.key} (${c.valueType})`).join(', ')}`);
+
+		this.setReady(auth, toSections(updated));
+	}
+
+	/** Validates and canonicalises a change, or throws PushValidationError. */
+	private static checked(input: ParameterChange): ParameterChange {
 		const invalid = validatePush(input);
 		if (invalid !== null) {
 			throw new PushValidationError(invalid.message, invalid.field);
 		}
-
-		const auth = await this.ensureAuth();
-		const key = input.key.trim();
 		const group = input.group?.trim() ?? '';
-		const value = normalizeValue(input.value, input.valueType);
-
-		const { template, etag } = await fetchRemoteConfig(auth);
-		const updated = group === ''
-			? mergeParameter(template, key, value, input.valueType)
-			: mergeParameterInGroup(template, group, key, value, input.valueType);
-
-		await pushRemoteConfig(auth, updated, etag);
-		logger.info(`Pushed ${key} (${input.valueType}) → ${group === '' ? 'root parameters' : `group "${group}"`}`);
-
-		this.setState({
-			kind: 'ready',
-			projectId: auth.projectId,
-			accountPath: RmcPushSession.readConfiguredPath(),
-			sections: toSections(updated)
-		});
+		return {
+			key: input.key.trim(),
+			value: normalizeValue(input.value, input.valueType),
+			valueType: input.valueType,
+			group: group === '' ? undefined : group,
+			isNew: input.isNew === true
+		};
 	}
 
 	dispose(): void {
 		this.emitter.dispose();
 		this.subscriptions.forEach(d => d.dispose());
 	}
+}
+
+function sameChange(a: ParameterChange, b: ParameterChange): boolean {
+	return a.key === b.key && a.value === b.value && a.valueType === b.valueType &&
+		(a.group ?? '') === (b.group ?? '') && a.isNew === b.isNew;
 }

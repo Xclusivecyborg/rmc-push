@@ -1,5 +1,7 @@
 // All shared interfaces, type aliases, typed error classes, and type guards.
-// No logic, no other src/ imports.
+// No logic; the only other src/ import is a type.
+
+import type { ImportResult } from '../batchImport';
 
 export type RemoteConfigValueType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'JSON';
 
@@ -69,6 +71,22 @@ export interface ConfigEntry {
 	conditionCount: number;
 	/** True when the parameter has no default value of its own. */
 	usesInAppDefault: boolean;
+	description?: string;
+}
+
+/**
+ * One parameter write: pushed on its own, or held in the batch until several are
+ * pushed together. Keyed by `key` alone — Firebase requires keys to be unique
+ * across the whole template, root and every group.
+ */
+export interface ParameterChange {
+	key: string;
+	value: string;
+	valueType: RemoteConfigValueType;
+	/** Undefined for a root parameter. */
+	group?: string;
+	/** True when the key does not exist in Firebase yet. */
+	isNew: boolean;
 }
 
 /** Root parameters, or one named parameter group, with their entries. */
@@ -92,26 +110,49 @@ export type ViewState =
 		projectId: string;
 		accountPath: string;
 		sections: ConfigSection[];
+		/** Changes waiting for a batch push, in the order they were staged. */
+		staged: ParameterChange[];
 	};
 
 /** Extension host → webview. */
 export type HostMessage =
 	| { type: 'state'; state: ViewState }
-	| { type: 'pushResult'; ok: boolean; message: string };
+	| { type: 'pushResult'; ok: boolean; message: string; key: string }
+	| { type: 'stageResult'; ok: boolean; message: string; key: string }
+	| { type: 'batchResult'; status: 'pending' | 'ok' | 'bad'; message: string }
+	| { type: 'stageManyResult'; ok: boolean; message: string }
+	| { type: 'importPreview'; requestId: number; result: ImportResult }
+	| { type: 'importFile'; text: string; name: string }
+	| { type: 'importFileError'; message: string };
 
 /** Webview → extension host. */
 export type WebviewMessage =
 	| { type: 'ready' }
 	| { type: 'selectAccount' }
 	| { type: 'refresh' }
-	| { type: 'push'; key: string; value: string; valueType: RemoteConfigValueType; group?: string };
+	| { type: 'clearAccount' }
+	| { type: 'openSettings' }
+	| { type: 'push'; change: ParameterChange }
+	| { type: 'stage'; change: ParameterChange }
+	| { type: 'unstage'; key: string }
+	| { type: 'discardStaged' }
+	| { type: 'reviewStaged' }
+	| { type: 'stageMany'; changes: ParameterChange[] }
+	| { type: 'previewImport'; requestId: number; text: string; group?: string }
+	| { type: 'pickImportFile' };
+
+const WEBVIEW_MESSAGE_TYPES: ReadonlySet<string> = new Set([
+	'ready', 'selectAccount', 'refresh', 'clearAccount', 'openSettings',
+	'push', 'stage', 'unstage', 'discardStaged', 'reviewStaged',
+	'stageMany', 'previewImport', 'pickImportFile'
+]);
 
 export function isWebviewMessage(value: unknown): value is WebviewMessage {
 	if (typeof value !== 'object' || value === null) {
 		return false;
 	}
 	const type = (value as { type?: unknown }).type;
-	return type === 'ready' || type === 'selectAccount' || type === 'refresh' || type === 'push';
+	return typeof type === 'string' && WEBVIEW_MESSAGE_TYPES.has(type);
 }
 
 // Typed error classes

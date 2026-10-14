@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { mergeParameter, mergeParameterInGroup } from '../../firebase/remoteConfig';
+import { keysOf, mergeChanges, mergeParameter, mergeParameterInGroup } from '../../firebase/remoteConfig';
 import { RemoteConfigTemplate } from '../../types/index';
 
 suite('firebase/remoteConfig — mergeParameter', () => {
@@ -123,5 +123,67 @@ suite('firebase/remoteConfig — mergeParameterInGroup', () => {
 		};
 		const result = mergeParameterInGroup(template, 'described', 'k', 'v', 'STRING');
 		assert.strictEqual(result.parameterGroups?.['described']?.description, 'A described group');
+	});
+});
+
+suite('firebase/remoteConfig — preserving untouched fields', () => {
+	const rich: RemoteConfigTemplate = {
+		parameters: {
+			welcome: {
+				defaultValue: { value: 'Hello' },
+				conditionalValues: { android: { value: 'Hello, Android' } },
+				description: 'Shown on the home screen',
+				valueType: 'STRING'
+			}
+		},
+		parameterGroups: {
+			ui: {
+				description: 'UI knobs',
+				parameters: {
+					color: {
+						defaultValue: { value: 'blue' },
+						conditionalValues: { ios: { value: 'red' } },
+						valueType: 'STRING'
+					}
+				}
+			}
+		}
+	};
+
+	test('editing a root parameter keeps its conditional values and description', () => {
+		const welcome = mergeParameter(rich, 'welcome', 'Hi', 'STRING').parameters?.['welcome'];
+		assert.strictEqual(welcome?.defaultValue?.value, 'Hi');
+		assert.deepStrictEqual(welcome?.conditionalValues, { android: { value: 'Hello, Android' } });
+		assert.strictEqual(welcome?.description, 'Shown on the home screen');
+	});
+
+	test('editing a grouped parameter keeps its conditional values', () => {
+		const color = mergeParameterInGroup(rich, 'ui', 'color', 'green', 'STRING')
+			.parameterGroups?.['ui']?.parameters['color'];
+		assert.strictEqual(color?.defaultValue?.value, 'green');
+		assert.deepStrictEqual(color?.conditionalValues, { ios: { value: 'red' } });
+	});
+
+	test('a batch applies every change in one template', () => {
+		const result = mergeChanges(rich, [
+			{ key: 'welcome', value: 'Hi', valueType: 'STRING', isNew: false },
+			{ key: 'color', value: 'green', valueType: 'STRING', group: 'ui', isNew: false },
+			{ key: 'brand_new', value: 'true', valueType: 'BOOLEAN', group: 'Fresh', isNew: true }
+		]);
+		assert.strictEqual(result.parameters?.['welcome']?.defaultValue?.value, 'Hi');
+		assert.strictEqual(result.parameters?.['welcome']?.description, 'Shown on the home screen');
+		assert.strictEqual(result.parameterGroups?.['ui']?.parameters['color']?.defaultValue?.value, 'green');
+		assert.strictEqual(result.parameterGroups?.['ui']?.description, 'UI knobs');
+		assert.strictEqual(result.parameterGroups?.['Fresh']?.parameters['brand_new']?.valueType, 'BOOLEAN');
+	});
+
+	test('a batch does not mutate the input template', () => {
+		const before = JSON.stringify(rich);
+		mergeChanges(rich, [{ key: 'welcome', value: 'Changed', valueType: 'STRING', isNew: false }]);
+		assert.strictEqual(JSON.stringify(rich), before);
+	});
+
+	test('keysOf lists root and grouped keys', () => {
+		assert.deepStrictEqual([...keysOf(rich)].sort(), ['color', 'welcome']);
 	});
 });
