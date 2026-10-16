@@ -18,6 +18,8 @@ export const GROUP_REGEX = /^[a-zA-Z0-9_][a-zA-Z0-9_ -]*$/;
 
 export const VALUE_TYPES: RemoteConfigValueType[] = ['STRING', 'NUMBER', 'BOOLEAN', 'JSON'];
 
+export const JSON_SHAPE_MESSAGE = 'JSON must be an object {…} or an array […]';
+
 export interface PushInput {
 	key: string;
 	value: string;
@@ -68,14 +70,22 @@ export function validatePush(input: PushInput): ValidationError | null {
 				return { field: 'value', message: 'Must be "true" or "false"' };
 			}
 			break;
-		case 'JSON':
+		case 'JSON': {
+			let parsed: unknown;
 			try {
-				JSON.parse(input.value);
+				parsed = JSON.parse(input.value);
 			} catch (err) {
 				const detail = err instanceof Error ? err.message : 'invalid';
 				return { field: 'value', message: `Invalid JSON: ${detail}` };
 			}
+			// `false`, `42`, `"hi"` and `null` are complete JSON documents too,
+			// but a JSON parameter holds structured data; a bare value belongs
+			// in a BOOLEAN, NUMBER or STRING parameter instead.
+			if (typeof parsed !== 'object' || parsed === null) {
+				return { field: 'value', message: JSON_SHAPE_MESSAGE };
+			}
 			break;
+		}
 		case 'STRING':
 			break;
 	}

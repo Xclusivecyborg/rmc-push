@@ -1,16 +1,48 @@
 /*
- * Everything here is expressed in VS Code theme variables so the panel adopts
- * the user's colour theme. Avoid literal colours — a hard-coded blue looks
- * wrong the moment someone switches to a light or high-contrast theme.
+ * Colours come from VS Code theme variables so the panel adopts the user's
+ * theme. The one exception is the accent: the plugin's brand violet, so the
+ * panel reads as one product. It is defined once below, per theme kind, and
+ * high-contrast themes fall back to the theme's own button colour.
  */
 
 :root {
-	--rmc-gap: 10px;
-	--rmc-radius: 4px;
+	--rmc-gap: 12px;
+	--rmc-radius: 10px;
+	--rmc-radius-sm: 8px;
+
+	--rmc-accent: #8b6cff;
+	--rmc-accent-fg: #ffffff;
+	--rmc-accent-text: #b9a6ff;
+	--rmc-accent-soft: color-mix(in srgb, var(--rmc-accent) 18%, transparent);
+
+	--rmc-surface: var(--vscode-editorWidget-background, var(--vscode-input-background));
+	--rmc-sunken: var(--vscode-textCodeBlock-background, color-mix(in srgb, var(--vscode-foreground) 6%, transparent));
+	--rmc-outline: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+	--rmc-hover: color-mix(in srgb, var(--vscode-foreground) 7%, transparent);
+	--rmc-success: var(--vscode-testing-iconPassed, #4cc38a);
+}
+
+body.vscode-light {
+	--rmc-accent: #6d4aff;
+	--rmc-accent-text: #5a37e6;
+}
+
+body.vscode-high-contrast,
+body.vscode-high-contrast-light {
+	--rmc-accent: var(--vscode-button-background);
+	--rmc-accent-fg: var(--vscode-button-foreground);
+	--rmc-accent-text: var(--vscode-textLink-foreground);
+	--rmc-accent-soft: transparent;
+	--rmc-outline: var(--vscode-contrastBorder);
 }
 
 * {
 	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
 }
 
 body {
@@ -22,54 +54,108 @@ body {
 	background: transparent;
 }
 
+#root {
+	height: 100%;
+}
+
+[hidden] {
+	display: none !important;
+}
+
 button {
 	font-family: inherit;
 	font-size: inherit;
+	color: inherit;
 	cursor: pointer;
 	border: none;
-	border-radius: var(--rmc-radius);
+	background: none;
+	border-radius: var(--rmc-radius-sm);
 }
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 }
 
 button:disabled {
-	opacity: 0.5;
+	opacity: 0.45;
 	cursor: default;
+}
+
+.icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
 }
 
 /* ---------- shared building blocks ---------- */
 
 .primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
 	width: 100%;
-	padding: 6px 11px;
-	background: var(--vscode-button-background);
-	color: var(--vscode-button-foreground);
+	padding: 9px 14px;
+	font-weight: 600;
+	background: var(--rmc-accent);
+	color: var(--rmc-accent-fg);
+	border-radius: var(--rmc-radius);
 }
 
 .primary:hover:not(:disabled) {
-	background: var(--vscode-button-hoverBackground);
+	background: color-mix(in srgb, var(--rmc-accent) 88%, white);
+}
+
+.primary.compact {
+	width: auto;
+	padding: 6px 12px;
 }
 
 .secondary {
-	padding: 4px 10px;
-	background: var(--vscode-button-secondaryBackground);
-	color: var(--vscode-button-secondaryForeground);
+	padding: 8px 14px;
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
+}
+
+.secondary.wide {
+	width: 100%;
 }
 
 .secondary:hover:not(:disabled) {
-	background: var(--vscode-button-secondaryHoverBackground);
+	background: var(--rmc-hover);
+	border-color: var(--rmc-accent);
+}
+
+.icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 30px;
+	height: 30px;
+	background: var(--rmc-surface);
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
+}
+
+.icon-btn:hover {
+	background: var(--rmc-hover);
+	border-color: var(--rmc-accent);
 }
 
 .link {
-	background: none;
 	padding: 0;
 	color: var(--vscode-textLink-foreground);
-	text-decoration: none;
+	border-radius: 2px;
 }
 
 .link:hover {
@@ -79,6 +165,49 @@ button:disabled {
 
 .muted {
 	color: var(--vscode-descriptionForeground);
+}
+
+.small {
+	font-size: 0.92em;
+}
+
+.error {
+	display: block;
+	color: var(--vscode-errorForeground);
+	font-size: 0.92em;
+}
+
+.error:empty {
+	display: none;
+}
+
+input[type='text'],
+input[type='search'],
+select,
+textarea {
+	width: 100%;
+	padding: 6px 8px;
+	font-family: inherit;
+	font-size: inherit;
+	color: var(--vscode-input-foreground);
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, var(--rmc-outline));
+	border-radius: var(--rmc-radius-sm);
+}
+
+textarea {
+	resize: vertical;
+	line-height: 1.45;
+}
+
+.mono,
+.code {
+	font-family: var(--vscode-editor-font-family);
+	font-size: var(--vscode-editor-font-size);
+}
+
+::placeholder {
+	color: var(--vscode-input-placeholderForeground);
 }
 
 /* ---------- placeholder states ---------- */
@@ -123,108 +252,62 @@ button:disabled {
 	.spinner {
 		animation-duration: 3s;
 	}
-
-	.chevron {
-		transition: none;
-	}
 }
 
-/* ---------- header ---------- */
+/* ---------- workspace ---------- */
 
-.header {
+.workspace {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.topbar {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	padding: 8px var(--rmc-gap);
-	border-bottom: 1px solid var(--vscode-panel-border);
+	gap: 8px;
+	padding: 10px var(--rmc-gap);
+	border-bottom: 1px solid var(--rmc-outline);
 }
 
-.header .project {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-weight: 600;
-}
-
-.dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
+.eyebrow {
 	flex: none;
-	background: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+	font-size: 0.92em;
+	color: var(--vscode-descriptionForeground);
 }
 
-/* ---------- parameter list ---------- */
-
-/* Sits above the filter so creating a parameter is the first thing offered. */
-.actions {
-	padding: var(--rmc-gap) var(--rmc-gap) 0;
-}
-
-.toolbar {
-	display: flex;
-	gap: 6px;
-	padding: var(--rmc-gap);
-}
-
-.search {
+.project {
+	position: relative;
 	flex: 1;
 	min-width: 0;
-	padding: 4px 6px;
-	color: var(--vscode-input-foreground);
-	background: var(--vscode-input-background);
-	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: var(--rmc-radius);
 }
 
-.search::placeholder {
-	color: var(--vscode-input-placeholderForeground);
-}
-
-/*
- * One card per parameter group. The card — not an indent — is what shows where
- * a group starts and ends: the old dim header line was easy to lose track of
- * once a project had more than a couple of groups.
- */
-.tiles {
-	padding: 0 var(--rmc-gap) var(--rmc-gap);
-}
-
-.tile {
-	margin-bottom: 8px;
-	background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
-	border: 1px solid var(--vscode-panel-border);
-	border-radius: 6px;
-	/* Clips the header tint to the rounded corners, including when the tile is
-	   collapsed and the header is the whole card. */
-	overflow: hidden;
-}
-
-.tile-head {
+.project-chip {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	width: 100%;
-	padding: 9px var(--rmc-gap);
-	background: var(--vscode-sideBarSectionHeader-background);
-	color: var(--vscode-foreground);
-	/* The accent edge is the tile's only strong colour — enough to tell one card
-	   from the next without competing with the values inside it. */
-	border-left: 3px solid var(--vscode-textLink-foreground);
-	border-radius: 0;
-	/* Deliberately not uppercased: group names are literal Firebase identifiers,
-	   and restyling them would misrepresent what the group is actually called. */
-	font-weight: 600;
+	height: 30px;
+	padding: 0 10px;
 	text-align: left;
+	background: var(--rmc-surface);
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
 }
 
-.tile-head:hover {
-	background: var(--vscode-list-hoverBackground);
+.project-chip:hover {
+	border-color: var(--rmc-accent);
 }
 
-.tile-head .name {
+.project-chip .dot {
+	flex: none;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--rmc-success);
+}
+
+.project-name {
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -232,184 +315,744 @@ button:disabled {
 	white-space: nowrap;
 }
 
-.chevron {
-	flex: none;
-	width: 10px;
-	line-height: 1;
+.project-chip .icon {
 	color: var(--vscode-descriptionForeground);
-	transition: transform 0.12s ease;
 }
 
-.tile-head[aria-expanded='false'] .chevron {
-	transform: rotate(-90deg);
+.menu {
+	position: absolute;
+	z-index: 10;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 4px;
+	background: var(--vscode-menu-background, var(--rmc-surface));
+	color: var(--vscode-menu-foreground, inherit);
+	border: 1px solid var(--vscode-menu-border, var(--rmc-outline));
+	border-radius: var(--rmc-radius-sm);
+	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.3));
 }
 
-.count {
-	flex: none;
-	min-width: 20px;
-	padding: 1px 6px;
-	background: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
-	border-radius: 9px;
-	font-size: 0.85em;
-	font-weight: 600;
-	text-align: center;
-}
-
-.tile-body {
-	padding: 3px 0;
-	border-top: 1px solid var(--vscode-panel-border);
-}
-
-.entry {
-	display: block;
-	width: 100%;
-	padding: 6px var(--rmc-gap) 7px;
+.menu button {
+	padding: 6px 8px;
 	text-align: left;
-	background: none;
-	color: inherit;
-	border-radius: 0;
+	border-radius: 4px;
 }
 
-.entry:hover {
-	background: var(--vscode-list-hoverBackground);
+.menu button:hover,
+.menu button:focus-visible {
+	background: var(--vscode-menu-selectionBackground, var(--rmc-hover));
+	color: var(--vscode-menu-selectionForeground, inherit);
 }
 
-.entry .key {
-	display: block;
+/*
+ * Stacked in the usual narrow sidebar; side by side once there is room, as in
+ * a wide secondary sidebar or a panel.
+ */
+.split {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.browser {
+	display: flex;
+	flex-direction: column;
+	flex: 0 1 auto;
+	max-height: 45%;
+	min-height: 0;
+	border-bottom: 1px solid var(--rmc-outline);
+}
+
+.detail {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+@media (min-width: 620px) {
+	.split {
+		flex-direction: row;
+	}
+
+	.browser {
+		flex: 0 0 40%;
+		max-height: none;
+		border-bottom: none;
+		border-right: 1px solid var(--rmc-outline);
+	}
+}
+
+/* Nothing selected: no editor, and the list uses the whole height. */
+.split.no-detail .detail {
+	display: none;
+}
+
+.split.no-detail .browser {
+	flex: 1;
+	max-height: none;
+	border: none;
+}
+
+/* New parameter and Batch Push: a full page over the list. */
+.page {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.page-bar {
+	padding: 8px var(--rmc-gap);
+	border-bottom: 1px solid var(--rmc-outline);
+}
+
+.back {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px 4px 4px;
+	color: var(--vscode-textLink-foreground);
+}
+
+.back:hover {
+	background: var(--rmc-hover);
+}
+
+.page-body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+/* The page's form reads better at a comfortable width than edge to edge. */
+.page-body .editor-body {
+	width: 100%;
+	max-width: 720px;
+	margin: 0 auto;
+}
+
+.list-hint {
+	margin: 0;
+	padding: 0 var(--rmc-gap) 8px;
+	font-size: 0.92em;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* ---------- browser ---------- */
+
+.search-row {
+	display: flex;
+	gap: 6px;
+	padding: 10px var(--rmc-gap) 0;
+}
+
+.new-row {
+	display: flex;
+	gap: 6px;
+	padding: 8px var(--rmc-gap) 0;
+}
+
+.new-row > button {
+	flex: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-width: 0;
+	white-space: nowrap;
+}
+
+.search-box {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+}
+
+.search-box .icon {
+	position: absolute;
+	left: 9px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--vscode-descriptionForeground);
+	pointer-events: none;
+}
+
+.search-box input {
+	height: 30px;
+	padding-left: 30px;
+	border-radius: var(--rmc-radius);
+}
+
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 8px var(--rmc-gap);
+}
+
+.fields .chips {
+	padding: 0;
+}
+
+.chip {
+	padding: 4px 10px;
+	font-size: 0.92em;
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius-sm);
+}
+
+.chip:hover {
+	background: var(--rmc-hover);
+}
+
+.chip.selected {
+	background: var(--rmc-accent);
+	border-color: var(--rmc-accent);
+	color: var(--rmc-accent-fg);
+}
+
+.cards {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 2px var(--rmc-gap) var(--rmc-gap);
+	overflow-y: auto;
+	min-height: 0;
+}
+
+.card {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 9px 12px;
+	text-align: left;
+	background: var(--rmc-surface);
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
+}
+
+.card:hover {
+	border-color: color-mix(in srgb, var(--rmc-accent) 60%, transparent);
+}
+
+.card.selected {
+	background: var(--rmc-accent-soft);
+	border-color: var(--rmc-accent);
+}
+
+.card-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.card-key {
+	font-weight: 600;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.entry .preview {
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	margin-top: 1px;
-	font-size: 0.9em;
+.card-sub,
+.card-mark {
+	font-size: 0.88em;
 	color: var(--vscode-descriptionForeground);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.entry .preview .val {
-	/* Flex items refuse to shrink below their content without this, so a long
-	   JSON value would widen the whole sidebar instead of being ellipsised. */
+.card-mark {
+	flex: none;
+}
+
+/* "Boolean · true": the value trails the type and is the part that gives way. */
+.card-value:not(:empty)::before {
+	content: '  ·  ';
+	white-space: pre;
+}
+
+.card-mark.staged,
+.staged-note {
+	color: var(--rmc-accent-text);
+}
+
+/*
+ * One card per group: a tinted header with the accent edge, then the group's
+ * parameter cards inside its outline. The edge is the group's only strong
+ * colour — enough to tell one group from the next without competing with the
+ * parameters inside it. The body stays unfilled so the cards stand out on it.
+ */
+.tile {
+	flex: none;
+	background: transparent;
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
+	/* Clips the header tint and the edge to the rounded corners, including
+	   when the tile is folded and the header is the whole card. */
+	overflow: hidden;
+}
+
+.group-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 9px 10px 9px 9px;
+	text-align: left;
+	/* Deliberately not uppercased: group names are literal Firebase
+	   identifiers, and restyling them would misrepresent them. */
+	font-weight: 600;
+	color: var(--vscode-foreground);
+	background: var(--vscode-sideBarSectionHeader-background, var(--rmc-hover));
+	border-left: 3px solid var(--rmc-accent);
+	border-radius: 0;
+}
+
+.group-head:hover {
+	background: var(--rmc-hover);
+}
+
+.group-head:focus-visible {
+	outline-offset: -2px;
+}
+
+.group-head .icon {
+	width: 14px;
+	height: 14px;
+	color: var(--vscode-descriptionForeground);
+	transition: transform 0.12s;
+}
+
+.group-head[aria-expanded='false'] .icon {
+	transform: rotate(-90deg);
+}
+
+.group-name {
+	flex: 1;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.badge {
+.group-count {
 	flex: none;
-	padding: 0 4px;
-	border-radius: 2px;
+	min-width: 20px;
+	padding: 1px 6px;
 	font-size: 0.85em;
-	background: var(--vscode-badge-background);
-	color: var(--vscode-badge-foreground);
+	text-align: center;
+	color: var(--rmc-accent-text);
+	background: var(--rmc-accent-soft);
+	border-radius: 9px;
 }
 
-.empty-note {
-	padding: 5px var(--rmc-gap) 6px;
-	font-size: 0.9em;
+.tile-body {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	border-top: 1px solid var(--rmc-outline);
+}
+
+.group-empty {
+	padding: 0 4px;
+	font-size: 0.92em;
 	color: var(--vscode-descriptionForeground);
 }
 
-/* ---------- editor form ---------- */
-
-.form {
-	padding: var(--rmc-gap);
+@media (prefers-reduced-motion: reduce) {
+	.group-head .icon {
+		transition: none;
+	}
 }
 
-.form-head {
+.empty-note {
+	padding: 16px 4px;
+	text-align: center;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* ---------- editor ---------- */
+
+.editor {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.editor-body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	flex: 1;
+	min-height: 0;
+	padding: 14px var(--rmc-gap) 10px;
+	overflow-y: auto;
+}
+
+.editor-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.editor-head h2 {
+	margin: 0;
+	font-size: 1.25em;
+	font-weight: 600;
+	word-break: break-all;
+}
+
+.editor-head p {
+	margin: 0;
+	line-height: 1.4;
+}
+
+.title-row {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	margin-bottom: 6px;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
-.form h2 {
-	margin: 0 0 12px;
-	font-size: 1em;
+/* A native select dressed as the type badge: still keyboard- and screen-reader-friendly. */
+.badge-select {
+	width: auto;
+	padding: 2px 6px;
+	font-size: 0.88em;
+	color: var(--rmc-accent-text);
+	background: var(--rmc-accent-soft);
+	border: 1px solid transparent;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.badge-select:hover {
+	border-color: var(--rmc-accent);
+}
+
+.fields {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.field-label {
+	font-weight: 600;
+}
+
+.fields .field-label:not(:first-child) {
+	margin-top: 8px;
+}
+
+.label-row {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.links {
+	display: flex;
+	gap: 12px;
+	font-size: 0.92em;
+}
+
+.switch-field {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, var(--rmc-outline));
+	border-radius: var(--rmc-radius);
+	cursor: pointer;
+}
+
+.switch {
+	appearance: none;
+	position: relative;
+	flex: none;
+	width: 40px;
+	height: 22px;
+	margin: 0;
+	border-radius: 11px;
+	background: var(--rmc-outline);
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+.switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #ffffff;
+	transition: transform 0.15s;
+}
+
+.switch:checked {
+	background: var(--rmc-accent);
+}
+
+.switch:checked::after {
+	transform: translateX(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.switch,
+	.switch::after {
+		transition: none;
+	}
+}
+
+.code {
+	margin: 0;
+	padding: 10px 12px;
+	white-space: pre-wrap;
+	word-break: break-word;
+	background: var(--rmc-sunken);
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius);
+}
+
+.tok-key {
+	color: var(--rmc-accent-text);
+}
+
+.tok-string {
+	color: var(--vscode-debugTokenExpression-string, #ce9178);
+}
+
+.tok-literal {
+	color: var(--vscode-debugTokenExpression-number, #b5cea8);
+}
+
+.editor-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px var(--rmc-gap) var(--rmc-gap);
+	border-top: 1px solid var(--rmc-outline);
+}
+
+.status {
+	font-size: 0.92em;
+	word-break: break-word;
+}
+
+.status:empty {
+	display: none;
+}
+
+.status.ok,
+.batch-result.ok {
+	color: var(--rmc-success);
+}
+
+.status.bad,
+.batch-result.bad {
+	color: var(--vscode-errorForeground);
+}
+
+.status.muted,
+.batch-result.pending {
+	color: var(--vscode-descriptionForeground);
+}
+
+/* ---------- batch bar ---------- */
+
+.batch-bar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	margin: 0 var(--rmc-gap) var(--rmc-gap);
+	padding: 8px 12px;
+	background: var(--rmc-accent-soft);
+	border: 1px solid var(--rmc-accent);
+	border-radius: var(--rmc-radius);
+}
+
+.batch-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+}
+
+.batch-text strong {
+	color: var(--rmc-accent-text);
+}
+
+.batch-result {
+	font-size: 0.92em;
+	word-break: break-word;
+}
+
+.batch-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+/* ---------- batch push view ---------- */
+
+.spaced {
+	margin-top: 6px;
+}
+
+.note {
+	font-size: 0.92em;
+	color: var(--rmc-accent-text);
+}
+
+.note:empty {
+	display: none;
+}
+
+.warning {
+	margin: 0;
+	font-size: 0.92em;
+	color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.error-inline {
+	color: var(--vscode-errorForeground);
+}
+
+/* Two tabs that read as one control. */
+.segmented {
+	padding: 0;
+	gap: 0;
+}
+
+.segmented .chip {
+	flex: 1;
+	padding: 6px 10px;
+	border-radius: 0;
+}
+
+.segmented .chip:first-child {
+	border-radius: var(--rmc-radius-sm) 0 0 var(--rmc-radius-sm);
+}
+
+.segmented .chip:last-child {
+	border-radius: 0 var(--rmc-radius-sm) var(--rmc-radius-sm) 0;
+	border-left: none;
+}
+
+.import-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.import-preview p {
+	margin: 0;
+}
+
+.preview-row,
+.staged-row {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 7px 10px;
+	background: var(--rmc-surface);
+	border: 1px solid var(--rmc-outline);
+	border-radius: var(--rmc-radius-sm);
+}
+
+.preview-row.has-error {
+	border-color: color-mix(in srgb, var(--vscode-errorForeground) 55%, transparent);
+}
+
+.preview-main {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.preview-key {
+	flex: 1;
+	min-width: 0;
+	font-weight: 600;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.field {
-	margin-bottom: 10px;
+.pill {
+	flex: none;
+	padding: 0 7px;
+	font-size: 0.85em;
+	border-radius: 9px;
 }
 
-.field label {
-	display: block;
-	margin-bottom: 3px;
-	font-size: 0.9em;
+.pill.new {
+	color: var(--rmc-accent-text);
+	background: var(--rmc-accent-soft);
+}
+
+.pill.update {
 	color: var(--vscode-descriptionForeground);
+	background: var(--rmc-hover);
 }
 
-.field input,
-.field select,
-.field textarea {
-	width: 100%;
-	padding: 4px 6px;
-	font-family: inherit;
-	font-size: inherit;
-	color: var(--vscode-input-foreground);
-	background: var(--vscode-input-background);
-	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: var(--rmc-radius);
-}
-
-.field textarea {
-	resize: vertical;
-	min-height: 54px;
-	font-family: var(--vscode-editor-font-family), monospace;
-}
-
-.field input:read-only {
-	opacity: 0.7;
-}
-
-.field select {
-	color: var(--vscode-dropdown-foreground);
-	background: var(--vscode-dropdown-background);
-	border-color: var(--vscode-dropdown-border, transparent);
-}
-
-.field .hint,
-.field .error {
-	display: block;
-	margin-top: 3px;
-	font-size: 0.9em;
-}
-
-.field .hint {
-	color: var(--vscode-descriptionForeground);
-}
-
-.field .error {
+.pill.bad {
 	color: var(--vscode-errorForeground);
+	background: color-mix(in srgb, var(--vscode-errorForeground) 14%, transparent);
 }
 
-.field.invalid input,
-.field.invalid textarea {
-	border-color: var(--vscode-inputValidation-errorBorder);
+.staged-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
-.status {
-	margin-top: 10px;
-	font-size: 0.9em;
-	word-break: break-word;
+.staged-row {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 6px 4px 10px;
 }
 
-.status.ok {
-	color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
+.staged-open {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	flex: 1;
+	min-width: 0;
+	padding: 3px 0;
+	text-align: left;
 }
 
-.status.bad {
-	color: var(--vscode-errorForeground);
+.staged-open .muted {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-[hidden] {
-	display: none !important;
+.small-btn {
+	width: 26px;
+	height: 26px;
+}
+
+.small-btn .icon {
+	width: 14px;
+	height: 14px;
 }

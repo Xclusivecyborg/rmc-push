@@ -68,15 +68,6 @@
         "icon": "$(refresh)"
       }
     ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "rmc-push.refresh",
-          "when": "view == rmcPush.configView",
-          "group": "navigation"
-        }
-      ]
-    },
     "configuration": {
       "type": "object",
       "title": "Firebase Remote Config Push",
